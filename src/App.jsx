@@ -6,6 +6,10 @@ import HouseholdScreen from './screens/HouseholdScreen';
 import PartnerIncomeScreen from './screens/PartnerIncomeScreen';
 import IncomeTypeScreen from './screens/IncomeTypeScreen';
 import SpendingPhilosophyScreen from './screens/SpendingPhilosophyScreen';
+import PayReconstructionScreen from './screens/PayReconstructionScreen';
+import PensionScreen from './screens/PensionScreen';
+import LESConfirmationScreen from './screens/LESConfirmationScreen';
+import IrregularIncomeScreen from './screens/IrregularIncomeScreen';
 
 const ALL_SCREENS = [
   'welcome', 'knowledge', 'household', 'partnerIncome',
@@ -106,7 +110,12 @@ function App() {
       case 'household':      return <HouseholdScreen {...props} />;
       case 'partnerIncome':  return <PartnerIncomeScreen {...props} />;
       case 'incomeType':     return <IncomeTypeScreen {...props} />;
-      case 'spendingPhilosophy': return <SpendingPhilosophyScreen {...props} />;
+      case 'spendingPhilosophy':   return <SpendingPhilosophyScreen {...props} />;
+      case 'payReconstruction1':   return <PayReconstructionScreen {...props} memberNumber={1} />;
+      case 'payReconstruction2':   return <PayReconstructionScreen {...props} memberNumber={2} />;
+      case 'pension':              return <PensionScreen {...props} />;
+      case 'lesConfirmation':      return <LESConfirmationScreen {...props} />;
+      case 'irregularIncome':      return <IrregularIncomeScreen {...props} />;
       default:
         return (
           <div style={{ padding: '80px 24px 24px', color: 'var(--gray)', fontFamily: 'DM Sans, sans-serif' }}>
