@@ -27,9 +27,16 @@ export function federalTaxAdvantage(basePay, bah, bas, specialPays) {
   );
 }
 
-// Requires getBasePay — implemented in Task 8
+import { getBasePay as _getBasePay } from '../data/militaryPayTables';
+import { getBAH as _getBAH } from '../data/bahRates';
+import { getBAS as _getBAS } from '../data/basRates';
+
+export { getBasePay } from '../data/militaryPayTables';
+export { getBAH } from '../data/bahRates';
+export { getBAS } from '../data/basRates';
+
 export function calculatePension(rank, tis, isBRS) {
-  const basePay = getBasePay(rank, tis);
+  const basePay = _getBasePay(rank, tis);
   const multiplier = isBRS ? 0.02 : 0.025;
   const annual = basePay * 12 * multiplier * tis;
   return {
@@ -96,7 +103,3 @@ export function monthsToPayoff(balance, rate, payment) {
   return Math.ceil(-Math.log(1 - (balance * r) / payment) / Math.log(1 + r));
 }
 
-// Stub — replaced in Task 8 with real pay tables
-export function getBasePay(rank, tis) {
-  return 0;
-}
