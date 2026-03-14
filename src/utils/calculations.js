@@ -1,8 +1,15 @@
+import { getBasePay as _getBasePay } from '../data/militaryPayTables';
+import { getBAS as _getBAS } from '../data/basRates';
+
+export { getBasePay } from '../data/militaryPayTables';
+export { getBAH, getMHA, getMHAName } from '../data/bahRates';
+export { getBAS } from '../data/basRates';
+
 export function calculateFederalTax(taxableIncome) {
   if (taxableIncome <= 0) return 0;
   const brackets = [
-    { max: 11925, rate: 0.10 },
-    { max: 48475, rate: 0.12 },
+    { max: 11925,  rate: 0.10 },
+    { max: 48475,  rate: 0.12 },
     { max: 103350, rate: 0.22 },
     { max: 197300, rate: 0.24 },
     { max: 250525, rate: 0.32 },
@@ -26,14 +33,6 @@ export function federalTaxAdvantage(basePay, bah, bas, specialPays) {
       calculateFederalTax(Math.max(0, a + d - std))) / 12
   );
 }
-
-import { getBasePay as _getBasePay } from '../data/militaryPayTables';
-import { getBAH as _getBAH } from '../data/bahRates';
-import { getBAS as _getBAS } from '../data/basRates';
-
-export { getBasePay } from '../data/militaryPayTables';
-export { getBAH } from '../data/bahRates';
-export { getBAS } from '../data/basRates';
 
 export function calculatePension(rank, tis, isBRS) {
   const basePay = _getBasePay(rank, tis);
@@ -102,4 +101,3 @@ export function monthsToPayoff(balance, rate, payment) {
   if (r === 0) return Math.ceil(balance / payment);
   return Math.ceil(-Math.log(1 - (balance * r) / payment) / Math.log(1 + r));
 }
-

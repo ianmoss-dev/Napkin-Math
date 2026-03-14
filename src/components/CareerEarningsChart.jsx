@@ -9,15 +9,15 @@ import { getBAS } from '../data/basRates';
 import { getPromotionTimeline } from '../data/promotionTimelines';
 import { federalTaxAdvantage } from '../utils/calculations';
 
-function calcAnnualRMC(rank, tis, hasDependents) {
+function calcAnnualRMC(rank, tis, hasDependents, zip) {
   const bp  = getBasePay(rank, tis);
-  const bah = getBAH(rank, hasDependents);
+  const bah = getBAH(rank, hasDependents, zip);
   const bas = getBAS(rank);
   const tax = federalTaxAdvantage(bp, bah, bas, 0);
   return (bp + bah + bas + tax) * 12;
 }
 
-function buildCareerData(rank, tis, hasDependents) {
+function buildCareerData(rank, tis, hasDependents, zip) {
   if (!rank || tis == null) return [];
   const timeline = getPromotionTimeline(rank);
   const data = [];
@@ -31,7 +31,7 @@ function buildCareerData(rank, tis, hasDependents) {
     const isPromotion = chartYear > 0 && timeline.some(p => p.atYear === actualTIS);
     data.push({
       year: chartYear,
-      rmc: calcAnnualRMC(currentRank, actualTIS, hasDependents),
+      rmc: calcAnnualRMC(currentRank, actualTIS, hasDependents, zip),
       rank: currentRank,
       isNow: chartYear === 0,
       isPromotion,
@@ -55,7 +55,7 @@ function formatY(value) {
   return `$${value}`;
 }
 
-export default function CareerEarningsChart({ rank, tis, hasDependents, m2Rank, m2TIS, m2Dependents, isDual }) {
+export default function CareerEarningsChart({ rank, tis, hasDependents, zip, m2Rank, m2TIS, m2Dependents, m2ZIP, isDual }) {
   const scrollRef = useRef(null);
   const [showHint, setShowHint] = useState(true);
 
@@ -67,8 +67,8 @@ export default function CareerEarningsChart({ rank, tis, hasDependents, m2Rank, 
     return () => el.removeEventListener('scroll', hide);
   }, []);
 
-  const m1Data = buildCareerData(rank, tis, hasDependents);
-  const m2Data = isDual ? buildCareerData(m2Rank, m2TIS, m2Dependents) : [];
+  const m1Data = buildCareerData(rank, tis, hasDependents, zip);
+  const m2Data = isDual ? buildCareerData(m2Rank, m2TIS, m2Dependents, m2ZIP) : [];
 
   if (!m1Data.length) return null;
 

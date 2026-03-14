@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import CareerEarningsChart from '../components/CareerEarningsChart';
 import { getBasePay } from '../data/militaryPayTables';
-import { getBAH } from '../data/bahRates';
+import { getBAH, getMHAName } from '../data/bahRates';
 import { getBAS } from '../data/basRates';
 import { federalTaxAdvantage } from '../utils/calculations';
 
@@ -83,7 +83,8 @@ export default function PayReconstructionScreen({ userData, updateUserData, onNe
 
   // Live calculations
   const basePay = rank && tisNum ? getBasePay(rank, tisNum) : 0;
-  const bahMonthly = rank ? (isOCONUS ? (Number(ohaRental) + Number(ohaUtility)) : getBAH(rank, effectiveDep)) : 0;
+  const bahMonthly = rank ? (isOCONUS ? (Number(ohaRental) + Number(ohaUtility)) : getBAH(rank, effectiveDep, zip)) : 0;
+  const mhaName = !isOCONUS && zip.length === 5 ? getMHAName(zip) : null;
   const bas = rank ? getBAS(rank) : 0;
   const spTotal = calcSpecialPaysTotal(specialPays);
   const taxAdv = basePay ? federalTaxAdvantage(basePay, isOCONUS ? 0 : bahMonthly, bas, spTotal) : 0;
@@ -91,7 +92,7 @@ export default function PayReconstructionScreen({ userData, updateUserData, onNe
 
   const cardVisible = !!(rank && tisNum);
 
-  const canContinue = !!(rank && tisNum && (isOCONUS ? (Number(ohaRental) > 0 || Number(ohaUtility) > 0) : zip.length === 5));
+  const canContinue = !!(rank && tisNum && (isOCONUS ? (Number(ohaRental) > 0 || Number(ohaUtility) > 0) : (zip.length === 5 && mhaName)));
 
   const handleContinue = () => {
     const updates = {
@@ -187,15 +188,27 @@ export default function PayReconstructionScreen({ userData, updateUserData, onNe
       {/* ZIP / OCONUS */}
       <p style={sectionLabel}>Duty Station</p>
       {!isOCONUS && (
-        <input
-          type="text"
-          inputMode="numeric"
-          placeholder="Duty Station ZIP"
-          maxLength={5}
-          value={zip}
-          onChange={e => setZip(e.target.value)}
-          style={{ ...inputStyle, marginBottom: 12 }}
-        />
+        <>
+          <input
+            type="text"
+            inputMode="numeric"
+            placeholder="Duty Station ZIP"
+            maxLength={5}
+            value={zip}
+            onChange={e => setZip(e.target.value)}
+            style={{ ...inputStyle, marginBottom: 4 }}
+          />
+          {zip.length === 5 && mhaName && (
+            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 12, color: 'var(--green)', margin: '0 0 12px', fontStyle: 'italic' }}>
+              {mhaName}
+            </p>
+          )}
+          {zip.length === 5 && !mhaName && (
+            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 12, color: 'var(--red)', margin: '0 0 12px', fontStyle: 'italic' }}>
+              ZIP not recognized — check your entry or use a nearby ZIP.
+            </p>
+          )}
+        </>
       )}
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0' }}>
@@ -352,10 +365,12 @@ export default function PayReconstructionScreen({ userData, updateUserData, onNe
           rank={rank}
           tis={tisNum}
           hasDependents={effectiveDep}
+          zip={zip}
           isDual={userData.isDualMilitary && memberNumber === 2}
           m2Rank={userData.m2Rank}
           m2TIS={userData.m2TIS}
           m2Dependents={userData.m2Dependents}
+          m2ZIP={userData.m2ZIP}
         />
       )}
 
