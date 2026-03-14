@@ -2,6 +2,10 @@ import { useState } from 'react';
 import ProgressBar from './components/ProgressBar';
 import WelcomeScreen from './screens/WelcomeScreen';
 import KnowledgeScreen from './screens/KnowledgeScreen';
+import HouseholdScreen from './screens/HouseholdScreen';
+import PartnerIncomeScreen from './screens/PartnerIncomeScreen';
+import IncomeTypeScreen from './screens/IncomeTypeScreen';
+import SpendingPhilosophyScreen from './screens/SpendingPhilosophyScreen';
 
 const ALL_SCREENS = [
   'welcome', 'knowledge', 'household', 'partnerIncome',
@@ -98,7 +102,11 @@ function App() {
   const renderScreen = () => {
     switch (currentScreen) {
       case 'welcome':    return <WelcomeScreen {...props} />;
-      case 'knowledge':  return <KnowledgeScreen {...props} />;
+      case 'knowledge':       return <KnowledgeScreen {...props} />;
+      case 'household':      return <HouseholdScreen {...props} />;
+      case 'partnerIncome':  return <PartnerIncomeScreen {...props} />;
+      case 'incomeType':     return <IncomeTypeScreen {...props} />;
+      case 'spendingPhilosophy': return <SpendingPhilosophyScreen {...props} />;
       default:
         return (
           <div style={{ padding: '80px 24px 24px', color: 'var(--gray)', fontFamily: 'DM Sans, sans-serif' }}>
