@@ -59,16 +59,27 @@ function WelcomeScreen({ onNext }) {
       </div>
 
       {/* Middle */}
-      <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center', paddingTop: 40 }}>
+      <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingTop: 40 }}>
         <p style={{
           fontFamily: 'DM Sans, sans-serif',
           fontSize: 22,
-          color: 'rgba(255,255,255,0.85)',
-          lineHeight: 1.5,
-          margin: 0,
+          fontWeight: 600,
+          color: 'rgba(255,255,255,0.95)',
+          lineHeight: 1.4,
+          margin: '0 0 12px',
           ...fade(250),
         }}>
-          Let&rsquo;s build a picture of your financial life.
+          80% of your financial plan in 30 minutes.
+        </p>
+        <p style={{
+          fontFamily: 'DM Sans, sans-serif',
+          fontSize: 17,
+          color: 'rgba(255,255,255,0.6)',
+          lineHeight: 1.5,
+          margin: 0,
+          ...fade(350),
+        }}>
+          You don&rsquo;t need perfect to get started.
         </p>
       </div>
 

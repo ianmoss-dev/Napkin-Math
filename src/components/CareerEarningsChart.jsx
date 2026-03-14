@@ -30,7 +30,7 @@ function buildCareerData(rank, tis, hasDependents, zip) {
     }
     const isPromotion = chartYear > 0 && timeline.some(p => p.atYear === actualTIS);
     data.push({
-      year: chartYear,
+      tis: actualTIS,
       rmc: calcAnnualRMC(currentRank, actualTIS, hasDependents, zip),
       rank: currentRank,
       isNow: chartYear === 0,
@@ -95,8 +95,8 @@ export default function CareerEarningsChart({ rank, tis, hasDependents, zip, m2R
       >
         <LineChart width={700} height={260} data={m1Data} margin={{ top: 8, right: 60, bottom: 8, left: 10 }}>
           <XAxis
-            dataKey="year"
-            tickFormatter={v => `Yr ${v}`}
+            dataKey="tis"
+            tickFormatter={v => `YOS ${v}`}
             tick={{ fontFamily: 'DM Sans, sans-serif', fontSize: 11, fill: 'var(--gray)' }}
           />
           <YAxis
@@ -107,7 +107,7 @@ export default function CareerEarningsChart({ rank, tis, hasDependents, zip, m2R
           />
           <Tooltip
             formatter={(value) => [`$${Math.round(value).toLocaleString('en-US')}/yr`, 'Annual RMC']}
-            labelFormatter={(label) => `Year ${label} (TIS ${tis + label})`}
+            labelFormatter={(label) => `YOS ${label}`}
             contentStyle={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13 }}
           />
           <ReferenceLine y={100000} stroke="var(--gray)" strokeDasharray="4 4" label={{ value: '$100K', position: 'right', fontSize: 11, fill: 'var(--gray)', fontFamily: 'DM Sans, sans-serif' }} />
