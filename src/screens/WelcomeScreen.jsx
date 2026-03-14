@@ -88,7 +88,7 @@ function WelcomeScreen({ onNext }) {
             cursor: 'pointer',
           }}
         >
-          Let&rsquo;s get started
+          Let&rsquo;s do it.
         </button>
         <p style={{
           fontFamily: 'DM Sans, sans-serif',
