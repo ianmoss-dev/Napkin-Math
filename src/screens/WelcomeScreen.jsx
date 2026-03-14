@@ -25,18 +25,6 @@ function WelcomeScreen({ onNext }) {
     }}>
       {/* Top */}
       <div>
-        <p style={{
-          fontFamily: 'DM Sans, sans-serif',
-          fontSize: 13,
-          fontWeight: 600,
-          textTransform: 'uppercase',
-          letterSpacing: '0.15em',
-          color: 'rgba(255,255,255,0.5)',
-          margin: '0 0 12px',
-          ...fade(0),
-        }}>
-          Napkin Math
-        </p>
         <h1 style={{
           fontFamily: 'Playfair Display, serif',
           fontSize: 56,
@@ -69,7 +57,7 @@ function WelcomeScreen({ onNext }) {
           margin: '0 0 12px',
           ...fade(250),
         }}>
-          80% of your financial plan in 30 minutes.
+          An 80% financial solution in 30 minutes.
         </p>
         <p style={{
           fontFamily: 'DM Sans, sans-serif',
@@ -79,7 +67,7 @@ function WelcomeScreen({ onNext }) {
           margin: 0,
           ...fade(350),
         }}>
-          You don&rsquo;t need perfect to get started.
+          You don&rsquo;t need to be perfect to get started.
         </p>
       </div>
 
