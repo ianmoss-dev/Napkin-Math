@@ -10,6 +10,7 @@ import PayReconstructionScreen from './screens/PayReconstructionScreen';
 import PensionScreen from './screens/PensionScreen';
 import LESConfirmationScreen from './screens/LESConfirmationScreen';
 import IrregularIncomeScreen from './screens/IrregularIncomeScreen';
+import HousingScreen from './screens/HousingScreen';
 
 const ALL_SCREENS = [
   'welcome', 'knowledge', 'household', 'partnerIncome',
@@ -116,6 +117,7 @@ function App() {
       case 'pension':              return <PensionScreen {...props} />;
       case 'lesConfirmation':      return <LESConfirmationScreen {...props} />;
       case 'irregularIncome':      return <IrregularIncomeScreen {...props} />;
+      case 'budgetHousing':        return <HousingScreen {...props} />;
       default:
         return (
           <div style={{ padding: '80px 24px 24px', color: 'var(--gray)', fontFamily: 'DM Sans, sans-serif' }}>

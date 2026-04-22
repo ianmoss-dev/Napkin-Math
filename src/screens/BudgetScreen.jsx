@@ -7,12 +7,13 @@ export default function BudgetScreen({
   subtext,
   percentageBands,
   fieldName,
-  flagThreshold,
+  flagAbovePct,
   flagCopy,
   userData,
   updateUserData,
   onNext,
   onBack,
+  onSelectChange,
   children,
 }) {
   const [mounted, setMounted] = useState(false);
@@ -21,15 +22,18 @@ export default function BudgetScreen({
 
   useEffect(() => { const t = setTimeout(() => setMounted(true), 50); return () => clearTimeout(t); }, []);
 
-  const bins = getBins(userData.monthlyTakeHome || 0, percentageBands);
+  const income = userData.monthlyTakeHome || 0;
+  const bins = getBins(income, percentageBands);
 
   const handleSelect = (value) => {
     setSelected(value);
-    // Show flag if top bin selected and flagThreshold is set
-    if (flagCopy) {
-      const topBinValue = bins[bins.length - 1]?.value;
-      setShowFlag(value === topBinValue);
+    if (flagCopy && income > 0) {
+      const threshold = flagAbovePct != null
+        ? income * flagAbovePct / 100
+        : bins[bins.length - 1]?.value;
+      setShowFlag(value >= threshold);
     }
+    onSelectChange?.(value);
   };
 
   const handleContinue = () => {
