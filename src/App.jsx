@@ -38,6 +38,7 @@ import Step6RetirementScreen from './screens/Step6RetirementScreen';
 import Step7GoalsScreen from './screens/Step7GoalsScreen';
 import Step8OptimizeScreen from './screens/Step8OptimizeScreen';
 import ScoreScreen from './screens/ScoreScreen';
+import PDFScreen from './screens/PDFScreen';
 
 const ALL_SCREENS = [
   'welcome', 'knowledge', 'household', 'partnerIncome',
@@ -172,6 +173,7 @@ function App() {
       case 'step7Goals':           return <Step7GoalsScreen {...props} />;
       case 'step8Optimize':        return <Step8OptimizeScreen {...props} />;
       case 'scoreScreen':          return <ScoreScreen {...props} />;
+      case 'pdfScreen':            return <PDFScreen {...props} />;
       default:
         return (
           <div style={{ padding: '80px 24px 24px', color: 'var(--gray)', fontFamily: 'DM Sans, sans-serif' }}>
