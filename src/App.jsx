@@ -33,6 +33,10 @@ import Step1CushionScreen from './screens/Step1CushionScreen';
 import Step2MatchScreen from './screens/Step2MatchScreen';
 import Step3DebtScreen from './screens/Step3DebtScreen';
 import Step4EmergencyFundScreen from './screens/Step4EmergencyFundScreen';
+import Step5ModerateDebtScreen from './screens/Step5ModerateDebtScreen';
+import Step6RetirementScreen from './screens/Step6RetirementScreen';
+import Step7GoalsScreen from './screens/Step7GoalsScreen';
+import Step8OptimizeScreen from './screens/Step8OptimizeScreen';
 
 const ALL_SCREENS = [
   'welcome', 'knowledge', 'household', 'partnerIncome',
@@ -162,6 +166,10 @@ function App() {
       case 'step2Match':           return <Step2MatchScreen {...props} />;
       case 'step3Debt':            return <Step3DebtScreen {...props} />;
       case 'step4EmergencyFund':   return <Step4EmergencyFundScreen {...props} />;
+      case 'step5ModerateDebt':    return <Step5ModerateDebtScreen {...props} />;
+      case 'step6Retirement':      return <Step6RetirementScreen {...props} />;
+      case 'step7Goals':           return <Step7GoalsScreen {...props} />;
+      case 'step8Optimize':        return <Step8OptimizeScreen {...props} />;
       default:
         return (
           <div style={{ padding: '80px 24px 24px', color: 'var(--gray)', fontFamily: 'DM Sans, sans-serif' }}>
