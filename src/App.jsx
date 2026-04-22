@@ -14,6 +14,9 @@ import HousingScreen from './screens/HousingScreen';
 import UtilitiesScreen from './screens/UtilitiesScreen';
 import GroceriesScreen from './screens/GroceriesScreen';
 import DiningOutScreen from './screens/DiningOutScreen';
+import CarPaymentScreen from './screens/CarPaymentScreen';
+import GasScreen from './screens/GasScreen';
+import CarInsuranceScreen from './screens/CarInsuranceScreen';
 
 const ALL_SCREENS = [
   'welcome', 'knowledge', 'household', 'partnerIncome',
@@ -124,6 +127,9 @@ function App() {
       case 'budgetUtilities':      return <UtilitiesScreen {...props} />;
       case 'budgetGroceries':      return <GroceriesScreen {...props} />;
       case 'budgetDining':         return <DiningOutScreen {...props} />;
+      case 'budgetCarPayment':     return <CarPaymentScreen {...props} />;
+      case 'budgetGas':            return <GasScreen {...props} />;
+      case 'budgetCarInsurance':   return <CarInsuranceScreen {...props} />;
       default:
         return (
           <div style={{ padding: '80px 24px 24px', color: 'var(--gray)', fontFamily: 'DM Sans, sans-serif' }}>

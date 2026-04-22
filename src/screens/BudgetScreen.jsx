@@ -9,6 +9,7 @@ export default function BudgetScreen({
   fieldName,
   flagAbovePct,
   flagCopy,
+  binOverrides,
   userData,
   updateUserData,
   onNext,
@@ -23,7 +24,10 @@ export default function BudgetScreen({
   useEffect(() => { const t = setTimeout(() => setMounted(true), 50); return () => clearTimeout(t); }, []);
 
   const income = userData.monthlyTakeHome || 0;
-  const bins = getBins(income, percentageBands);
+  const rawBins = getBins(income, percentageBands);
+  const bins = binOverrides
+    ? rawBins.map((b, i) => binOverrides[i] ? { ...b, label: binOverrides[i] } : b)
+    : rawBins;
 
   const handleSelect = (value) => {
     setSelected(value);
