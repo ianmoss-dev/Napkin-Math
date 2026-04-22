@@ -40,6 +40,15 @@ import Step8OptimizeScreen from './screens/Step8OptimizeScreen';
 import ScoreScreen from './screens/ScoreScreen';
 import PDFScreen from './screens/PDFScreen';
 
+const STORAGE_KEY = 'napkin-math-v1';
+
+function loadSaved() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
 const ALL_SCREENS = [
   'welcome', 'knowledge', 'household', 'partnerIncome',
   'incomeType', 'spendingPhilosophy',
@@ -107,30 +116,56 @@ const initialUserData = {
 };
 
 function App() {
-  const [currentScreen, setCurrentScreen] = useState('welcome');
-  const [history, setHistory] = useState(['welcome']);
-  const [userData, setUserData] = useState(initialUserData);
+  const saved = loadSaved();
+  const [currentScreen, setCurrentScreen] = useState(saved?.currentScreen || 'welcome');
+  const [history, setHistory] = useState(saved?.history || ['welcome']);
+  const [userData, setUserData] = useState({ ...initialUserData, ...(saved?.userData || {}) });
+
+  const save = (ud, screen, hist) => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ userData: ud, currentScreen: screen, history: hist }));
+    } catch {}
+  };
 
   const updateUserData = (updates) => {
-    setUserData(prev => ({ ...prev, ...updates }));
+    setUserData(prev => {
+      const next = { ...prev, ...updates };
+      save(next, currentScreen, history);
+      return next;
+    });
   };
 
   const navigate = (screen) => {
-    setHistory(prev => [...prev, screen]);
+    const newHistory = [...history, screen];
+    setHistory(newHistory);
     setCurrentScreen(screen);
+    save(userData, screen, newHistory);
   };
 
   const goBack = () => {
     if (history.length > 1) {
       const newHistory = history.slice(0, -1);
+      const prev = newHistory[newHistory.length - 1];
       setHistory(newHistory);
-      setCurrentScreen(newHistory[newHistory.length - 1]);
+      setCurrentScreen(prev);
+      save(userData, prev, newHistory);
     }
   };
 
-  const screenIndex = ALL_SCREENS.indexOf(currentScreen);
+  const startFresh = () => {
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    setUserData(initialUserData);
+    setHistory(['welcome']);
+    navigate('knowledge');
+  };
+
+  // Progress: use history depth as proxy for actual completion
+  const ESTIMATED_TOTAL = 32;
+  const progressPct = currentScreen === 'welcome' ? 0
+    : Math.min(99, Math.round((history.length / ESTIMATED_TOTAL) * 100));
+
   const showProgress = currentScreen !== 'welcome';
-  const props = { userData, updateUserData, onNext: navigate, onBack: goBack };
+  const props = { userData, updateUserData, onNext: navigate, onBack: goBack, onStartFresh: startFresh };
 
   const renderScreen = () => {
     switch (currentScreen) {
@@ -185,9 +220,7 @@ function App() {
 
   return (
     <>
-      {showProgress && (
-        <ProgressBar current={screenIndex} total={ALL_SCREENS.length - 1} />
-      )}
+      {showProgress && <ProgressBar pct={progressPct} />}
       {renderScreen()}
     </>
   );
