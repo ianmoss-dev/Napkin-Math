@@ -36,7 +36,7 @@ function IncomeTypeScreen({ userData, updateUserData, onNext, onBack }) {
   const handleContinue = () => {
     const isDualMilitary = userData.partnerIncomeType === 'military' && selected === 'military';
     updateUserData({ incomeType: selected, isDualMilitary });
-    onNext('spendingPhilosophy');
+    onNext('prep');
   };
 
   return (

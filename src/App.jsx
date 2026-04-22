@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { generateSaveCode } from './utils/saveCode';
 import ProgressBar from './components/ProgressBar';
 import WelcomeScreen from './screens/WelcomeScreen';
 import KnowledgeScreen from './screens/KnowledgeScreen';
 import HouseholdScreen from './screens/HouseholdScreen';
 import PartnerIncomeScreen from './screens/PartnerIncomeScreen';
 import IncomeTypeScreen from './screens/IncomeTypeScreen';
+import PrepScreen from './screens/PrepScreen';
 import SpendingPhilosophyScreen from './screens/SpendingPhilosophyScreen';
 import PayReconstructionScreen from './screens/PayReconstructionScreen';
 import PensionScreen from './screens/PensionScreen';
@@ -39,6 +41,7 @@ import Step7GoalsScreen from './screens/Step7GoalsScreen';
 import Step8OptimizeScreen from './screens/Step8OptimizeScreen';
 import ScoreScreen from './screens/ScoreScreen';
 import PDFScreen from './screens/PDFScreen';
+import RetirementCalculatorScreen from './screens/RetirementCalculatorScreen';
 
 const STORAGE_KEY = 'napkin-math-v1';
 
@@ -51,7 +54,7 @@ function loadSaved() {
 
 const ALL_SCREENS = [
   'welcome', 'knowledge', 'household', 'partnerIncome',
-  'incomeType', 'spendingPhilosophy',
+  'incomeType', 'prep', 'spendingPhilosophy',
   'payReconstruction1', 'payReconstruction2', 'pension',
   'lesConfirmation', 'irregularIncome',
   'budgetHousing', 'budgetUtilities', 'budgetGroceries', 'budgetDining',
@@ -62,7 +65,7 @@ const ALL_SCREENS = [
   'transition', 'monthlyPicture',
   'step1Cushion', 'step2Match', 'step3Debt', 'step4EmergencyFund',
   'step5ModerateDebt', 'step6Retirement', 'step7Goals', 'step8Optimize',
-  'scoreScreen', 'pdfScreen',
+  'scoreScreen', 'pdfScreen', 'retirementCalc',
 ];
 
 const initialUserData = {
@@ -115,11 +118,17 @@ const initialUserData = {
   emergencyFundMonths: null, goals: [],
 };
 
+const TIMER_DURATION = 10 * 60 * 1000;
+const EXEMPT_SCREENS = new Set(['welcome', 'scoreScreen', 'pdfScreen', 'knowledge']);
+
 function App() {
   const saved = loadSaved();
   const [currentScreen, setCurrentScreen] = useState(saved?.currentScreen || 'welcome');
   const [history, setHistory] = useState(saved?.history || ['welcome']);
   const [userData, setUserData] = useState({ ...initialUserData, ...(saved?.userData || {}) });
+  const [showTimerOverlay, setShowTimerOverlay] = useState(false);
+  const timerRef = useRef(null);
+  const startTimeRef = useRef(null);
 
   const save = (ud, screen, hist) => {
     try {
@@ -159,21 +168,53 @@ function App() {
     navigate('knowledge');
   };
 
+  const restoreCode = (decoded) => {
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    const next = { ...initialUserData, ...decoded };
+    setUserData(next);
+    const screen = decoded.napkinScale ? 'scoreScreen' : decoded.monthlyTakeHome ? 'monthlyPicture' : 'knowledge';
+    const newHistory = ['welcome', screen];
+    setHistory(newHistory);
+    setCurrentScreen(screen);
+    save(next, screen, newHistory);
+  };
+
+  // Start timer when user leaves welcome screen
+  useEffect(() => {
+    if (currentScreen === 'welcome' || EXEMPT_SCREENS.has(currentScreen)) return;
+    if (timerRef.current) return;
+    startTimeRef.current = Date.now();
+    timerRef.current = setTimeout(() => {
+      setShowTimerOverlay(true);
+    }, TIMER_DURATION);
+    return () => {};
+  }, [currentScreen]);
+
+  // Clear timer if user reaches end screens
+  useEffect(() => {
+    if (EXEMPT_SCREENS.has(currentScreen) && currentScreen !== 'welcome') {
+      if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
+      setShowTimerOverlay(false);
+    }
+  }, [currentScreen]);
+
   // Progress: use history depth as proxy for actual completion
   const ESTIMATED_TOTAL = 32;
   const progressPct = currentScreen === 'welcome' ? 0
     : Math.min(99, Math.round((history.length / ESTIMATED_TOTAL) * 100));
 
   const showProgress = currentScreen !== 'welcome';
-  const props = { userData, updateUserData, onNext: navigate, onBack: goBack, onStartFresh: startFresh };
+  const saveCode = generateSaveCode(userData);
+  const props = { userData, updateUserData, onNext: navigate, onBack: goBack, onStartFresh: startFresh, saveCode };
 
   const renderScreen = () => {
     switch (currentScreen) {
-      case 'welcome':    return <WelcomeScreen {...props} />;
+      case 'welcome':    return <WelcomeScreen {...props} onRestoreCode={restoreCode} />;
       case 'knowledge':       return <KnowledgeScreen {...props} />;
       case 'household':      return <HouseholdScreen {...props} />;
       case 'partnerIncome':  return <PartnerIncomeScreen {...props} />;
       case 'incomeType':     return <IncomeTypeScreen {...props} />;
+      case 'prep':                 return <PrepScreen {...props} />;
       case 'spendingPhilosophy':   return <SpendingPhilosophyScreen {...props} />;
       case 'payReconstruction1':   return <PayReconstructionScreen {...props} memberNumber={1} />;
       case 'payReconstruction2':   return <PayReconstructionScreen {...props} memberNumber={2} />;
@@ -209,6 +250,7 @@ function App() {
       case 'step8Optimize':        return <Step8OptimizeScreen {...props} />;
       case 'scoreScreen':          return <ScoreScreen {...props} />;
       case 'pdfScreen':            return <PDFScreen {...props} />;
+      case 'retirementCalc':       return <RetirementCalculatorScreen {...props} />;
       default:
         return (
           <div style={{ padding: '80px 24px 24px', color: 'var(--gray)', fontFamily: 'DM Sans, sans-serif' }}>
@@ -222,6 +264,47 @@ function App() {
     <>
       {showProgress && <ProgressBar pct={progressPct} />}
       {renderScreen()}
+      {showTimerOverlay && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 999,
+          background: 'rgba(27,58,107,0.85)',
+          display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+          padding: '0 0 24px',
+        }}>
+          <div style={{
+            background: '#fff',
+            borderRadius: 24,
+            padding: '32px 24px 24px',
+            width: 'calc(100% - 48px)',
+            maxWidth: 382,
+            boxShadow: '0 24px 64px rgba(0,0,0,0.3)',
+          }}>
+            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 12, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--blue)', margin: '0 0 8px' }}>
+              Time&rsquo;s Up
+            </p>
+            <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 26, fontWeight: 700, color: 'var(--navy)', margin: '0 0 12px', lineHeight: 1.2 }}>
+              Great progress today.
+            </h2>
+            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 16, color: 'var(--gray)', lineHeight: 1.5, margin: '0 0 24px' }}>
+              Get your next steps now, or keep going for a more complete picture.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button
+                onClick={() => { setShowTimerOverlay(false); navigate('scoreScreen'); }}
+                style={{ width: '100%', height: 56, background: 'var(--navy)', color: '#fff', border: 'none', borderRadius: 16, fontFamily: 'DM Sans, sans-serif', fontSize: 18, fontWeight: 600, cursor: 'pointer' }}
+              >
+                Get my next steps
+              </button>
+              <button
+                onClick={() => setShowTimerOverlay(false)}
+                style={{ width: '100%', height: 48, background: 'transparent', color: 'var(--gray)', border: '1.5px solid #E0E0E0', borderRadius: 14, fontFamily: 'DM Sans, sans-serif', fontSize: 16, cursor: 'pointer' }}
+              >
+                Keep going
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

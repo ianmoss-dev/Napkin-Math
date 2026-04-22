@@ -137,6 +137,13 @@ export default function Step6RetirementScreen({ userData, updateUserData, onNext
         </div>
       )}
 
+      <button
+        onClick={() => onNext('retirementCalc')}
+        style={{ width: '100%', height: 48, borderRadius: 14, border: '2px solid var(--navy)', background: '#fff', color: 'var(--navy)', fontFamily: 'DM Sans, sans-serif', fontSize: 15, fontWeight: 600, cursor: 'pointer', marginBottom: 16 }}
+      >
+        Open retirement calculator
+      </button>
+
       {profile && (
         <>
           <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 430, height: 80, background: 'linear-gradient(transparent, #F8F9FA 40%)', pointerEvents: 'none', zIndex: 99 }} />

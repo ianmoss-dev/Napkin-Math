@@ -4,9 +4,10 @@ import PDFDocument from '../components/PDFDocument';
 import { getStage } from '../utils/napkinScale';
 import { formatCurrency } from '../utils/formatters';
 
-export default function PDFScreen({ userData, onBack }) {
+export default function PDFScreen({ userData, onBack, saveCode }) {
   const [mounted, setMounted] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
 
   useEffect(() => { const t = setTimeout(() => setMounted(true), 50); return () => clearTimeout(t); }, []);
 
@@ -20,6 +21,14 @@ export default function PDFScreen({ userData, onBack }) {
     navigator.clipboard.writeText(shareText).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const handleCopyCode = () => {
+    if (!saveCode) return;
+    navigator.clipboard.writeText(saveCode).then(() => {
+      setCodeCopied(true);
+      setTimeout(() => setCodeCopied(false), 2000);
     });
   };
 
@@ -71,6 +80,27 @@ export default function PDFScreen({ userData, onBack }) {
       >
         {copied ? '✓ Copied to clipboard' : 'Copy share card'}
       </button>
+
+      {/* Save code */}
+      {saveCode && (
+        <div style={{ background: 'var(--light-gold)', borderRadius: 16, padding: '16px 20px', marginBottom: 12 }}>
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A6020', margin: '0 0 6px' }}>
+            Save Code
+          </p>
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: '#595959', margin: '0 0 12px', lineHeight: 1.5 }}>
+            Paste this code on your next visit to restore your plan on any device.
+          </p>
+          <div style={{ fontFamily: 'monospace', fontSize: 13, wordBreak: 'break-all', color: 'var(--navy)', background: '#fff', borderRadius: 10, padding: '10px 14px', marginBottom: 10 }}>
+            {saveCode.split('|')[0]}
+          </div>
+          <button
+            onClick={handleCopyCode}
+            style={{ width: '100%', height: 44, borderRadius: 12, border: '1.5px solid #C9A84C', background: '#fff', color: '#7A6020', fontFamily: 'DM Sans, sans-serif', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+          >
+            {codeCopied ? '✓ Code copied' : 'Copy full save code'}
+          </button>
+        </div>
+      )}
 
       {/* PDF download */}
       <PDFDownloadLink

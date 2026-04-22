@@ -1,44 +1,123 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { formatCurrency } from '../utils/formatters';
 
 export default function BinSelector({ bins, selectedValue, onSelect }) {
-  const [customMode, setCustomMode] = useState(false);
-  const [customInput, setCustomInput] = useState('');
+  const [inputVal, setInputVal] = useState(selectedValue != null ? String(selectedValue) : '');
+  const [activeBin, setActiveBin] = useState(null);
+  const inputRef = useRef(null);
 
-  const handleCustomSubmit = () => {
-    const val = Number(customInput);
-    if (val > 0) {
-      onSelect(val);
-      setCustomMode(false);
+  useEffect(() => {
+    if (selectedValue != null && inputVal === '') {
+      setInputVal(String(selectedValue));
+    }
+  }, []);
+
+  const handleInputChange = (e) => {
+    const raw = e.target.value.replace(/[^0-9.]/g, '');
+    setInputVal(raw);
+    setActiveBin(null);
+    const num = parseFloat(raw);
+    if (!isNaN(num) && num >= 0) {
+      onSelect(num);
     }
   };
 
+  const handleBinClick = (bin) => {
+    setActiveBin(bin.value);
+    setInputVal(String(bin.value));
+    onSelect(bin.value);
+    inputRef.current?.blur();
+  };
+
+  const numericVal = parseFloat(inputVal);
+  const hasValue = !isNaN(numericVal) && numericVal >= 0 && inputVal !== '';
+
   return (
     <div>
+      <div style={{ position: 'relative', marginBottom: 8 }}>
+        <span style={{
+          position: 'absolute',
+          left: 16,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          fontFamily: 'DM Sans, sans-serif',
+          fontSize: 22,
+          color: hasValue ? 'var(--navy)' : '#BDBDBD',
+          pointerEvents: 'none',
+          fontWeight: 600,
+        }}>$</span>
+        <input
+          ref={inputRef}
+          type="text"
+          inputMode="decimal"
+          placeholder="0"
+          value={inputVal}
+          onChange={handleInputChange}
+          style={{
+            width: '100%',
+            height: 64,
+            border: `2px solid ${hasValue ? 'var(--navy)' : '#E0E0E0'}`,
+            borderRadius: 14,
+            fontFamily: 'DM Sans, sans-serif',
+            fontSize: 28,
+            fontWeight: 600,
+            color: 'var(--navy)',
+            padding: '0 16px 0 36px',
+            outline: 'none',
+            boxSizing: 'border-box',
+            background: '#fff',
+            transition: 'border-color 150ms',
+          }}
+        />
+      </div>
+
+      {hasValue && (
+        <p style={{
+          fontFamily: 'DM Sans, sans-serif',
+          fontSize: 13,
+          color: 'var(--gray)',
+          margin: '0 0 16px 2px',
+        }}>
+          {formatCurrency(numericVal)}/mo · {formatCurrency(numericVal * 12)}/yr
+        </p>
+      )}
+
+      <p style={{
+        fontFamily: 'DM Sans, sans-serif',
+        fontSize: 12,
+        fontWeight: 600,
+        letterSpacing: '0.08em',
+        textTransform: 'uppercase',
+        color: '#BDBDBD',
+        margin: hasValue ? '0 0 8px' : '8px 0 8px',
+      }}>
+        Not sure? Pick a range
+      </p>
+
       <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: 10,
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 8,
       }}>
         {bins.map((bin) => {
-          const isSelected = !customMode && selectedValue === bin.value;
+          const isActive = activeBin === bin.value;
           return (
             <button
               key={bin.value}
-              onClick={() => { setCustomMode(false); onSelect(bin.value); }}
+              onClick={() => handleBinClick(bin)}
               style={{
-                height: 72,
-                borderRadius: 12,
-                border: `2px solid ${isSelected ? 'var(--navy)' : 'var(--navy)'}`,
-                background: isSelected ? 'var(--navy)' : '#fff',
-                color: isSelected ? '#fff' : 'var(--navy)',
+                height: 40,
+                paddingInline: 14,
+                borderRadius: 20,
+                border: `1.5px solid ${isActive ? 'var(--navy)' : '#D0D0D0'}`,
+                background: isActive ? 'var(--navy)' : '#fff',
+                color: isActive ? '#fff' : 'var(--gray)',
                 fontFamily: 'DM Sans, sans-serif',
-                fontSize: 15,
-                fontWeight: isSelected ? 600 : 400,
+                fontSize: 13,
+                fontWeight: isActive ? 600 : 400,
                 cursor: 'pointer',
-                padding: '0 10px',
-                transition: 'background 150ms, color 150ms',
-                lineHeight: 1.3,
+                transition: 'background 150ms, color 150ms, border-color 150ms',
+                whiteSpace: 'nowrap',
               }}
             >
               {bin.label}
@@ -46,62 +125,6 @@ export default function BinSelector({ bins, selectedValue, onSelect }) {
           );
         })}
       </div>
-
-      {!customMode ? (
-        <button
-          onClick={() => setCustomMode(true)}
-          style={{
-            fontFamily: 'DM Sans, sans-serif',
-            fontSize: 14,
-            color: 'var(--blue)',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            padding: '12px 0 0',
-            textDecoration: 'underline',
-          }}
-        >
-          Enter exact amount
-        </button>
-      ) : (
-        <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
-          <input
-            type="number"
-            inputMode="decimal"
-            placeholder="Monthly amount"
-            value={customInput}
-            onChange={e => setCustomInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleCustomSubmit()}
-            autoFocus
-            style={{
-              flex: 1, height: 56, border: '2px solid var(--navy)', borderRadius: 12,
-              fontFamily: 'DM Sans, sans-serif', fontSize: 18, padding: '0 16px', outline: 'none',
-            }}
-          />
-          <button
-            onClick={handleCustomSubmit}
-            style={{
-              height: 56, paddingInline: 20, borderRadius: 12, border: 'none',
-              background: 'var(--navy)', color: '#fff',
-              fontFamily: 'DM Sans, sans-serif', fontSize: 16, fontWeight: 600, cursor: 'pointer',
-            }}
-          >
-            OK
-          </button>
-          <button
-            onClick={() => { setCustomMode(false); setCustomInput(''); }}
-            style={{ height: 56, paddingInline: 12, borderRadius: 12, border: '2px solid #E0E0E0', background: '#fff', fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: 'var(--gray)', cursor: 'pointer' }}
-          >
-            Cancel
-          </button>
-        </div>
-      )}
-
-      {selectedValue != null && customMode === false && (
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: 'var(--gray)', margin: '8px 0 0' }}>
-          Selected: {formatCurrency(selectedValue)}/mo · {formatCurrency(selectedValue * 12)}/yr
-        </p>
-      )}
     </div>
   );
 }

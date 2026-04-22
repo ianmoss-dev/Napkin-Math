@@ -93,6 +93,13 @@ export default function ScoreScreen({ userData, updateUserData, onNext, onBack }
         </div>
       )}
 
+      <button
+        onClick={() => onNext('retirementCalc')}
+        style={{ width: '100%', height: 48, borderRadius: 14, border: '2px solid var(--navy)', background: '#fff', color: 'var(--navy)', fontFamily: 'DM Sans, sans-serif', fontSize: 15, fontWeight: 600, cursor: 'pointer', margin: '20px 0 0' }}
+      >
+        Open retirement calculator
+      </button>
+
       <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 430, height: 80, background: 'linear-gradient(transparent, #F8F9FA 40%)', pointerEvents: 'none', zIndex: 99 }} />
       <button onClick={() => onNext('pdfScreen')} style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', width: 'calc(100% - 48px)', maxWidth: 382, height: 56, background: 'var(--navy)', color: '#fff', border: 'none', borderRadius: 16, fontFamily: 'DM Sans, sans-serif', fontSize: 18, fontWeight: 600, cursor: 'pointer', zIndex: 100 }}>
         Get my plan
