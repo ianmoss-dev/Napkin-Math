@@ -21,6 +21,7 @@ import PhoneScreen from './screens/PhoneScreen';
 import InternetScreen from './screens/InternetScreen';
 import HealthInsuranceScreen from './screens/HealthInsuranceScreen';
 import MedicalScreen from './screens/MedicalScreen';
+import SubscriptionsScreen from './screens/SubscriptionsScreen';
 
 const ALL_SCREENS = [
   'welcome', 'knowledge', 'household', 'partnerIncome',
@@ -138,6 +139,7 @@ function App() {
       case 'budgetInternet':       return <InternetScreen {...props} />;
       case 'budgetHealthInsurance': return <HealthInsuranceScreen {...props} />;
       case 'budgetMedical':        return <MedicalScreen {...props} />;
+      case 'budgetSubscriptions':  return <SubscriptionsScreen {...props} />;
       default:
         return (
           <div style={{ padding: '80px 24px 24px', color: 'var(--gray)', fontFamily: 'DM Sans, sans-serif' }}>
