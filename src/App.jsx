@@ -27,6 +27,8 @@ import DebtScreen from './screens/DebtScreen';
 import ClothingScreen from './screens/ClothingScreen';
 import EntertainmentScreen from './screens/EntertainmentScreen';
 import GivingScreen from './screens/GivingScreen';
+import TransitionScreen from './screens/TransitionScreen';
+import MonthlyPictureScreen from './screens/MonthlyPictureScreen';
 
 const ALL_SCREENS = [
   'welcome', 'knowledge', 'household', 'partnerIncome',
@@ -150,6 +152,8 @@ function App() {
       case 'budgetClothing':       return <ClothingScreen {...props} />;
       case 'budgetEntertainment':  return <EntertainmentScreen {...props} />;
       case 'budgetGiving':         return <GivingScreen {...props} />;
+      case 'transition':           return <TransitionScreen {...props} />;
+      case 'monthlyPicture':       return <MonthlyPictureScreen {...props} />;
       default:
         return (
           <div style={{ padding: '80px 24px 24px', color: 'var(--gray)', fontFamily: 'DM Sans, sans-serif' }}>
