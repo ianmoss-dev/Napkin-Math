@@ -62,6 +62,10 @@ function ChipRow({ options, value, onChange, labelKey = 'label', valueKey = 'val
 }
 
 function NumberInput({ label, value, onChange, placeholder = '0', suffix = '' }) {
+  const [draft, setDraft] = useState(value === 0 ? '' : String(value));
+  const [isFocused, setIsFocused] = useState(false);
+  const displayValue = isFocused ? draft : (value === 0 ? '' : String(value));
+
   return (
     <div>
       <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--blue)', margin: '0 0 6px' }}>
@@ -72,9 +76,26 @@ function NumberInput({ label, value, onChange, placeholder = '0', suffix = '' })
           type="text"
           inputMode="decimal"
           placeholder={placeholder}
-          value={value === 0 ? '' : String(value)}
+          value={displayValue}
+          onFocus={() => {
+            setDraft(value === 0 ? '' : String(value));
+            setIsFocused(true);
+          }}
+          onBlur={() => {
+            setIsFocused(false);
+          }}
           onChange={e => {
-            const n = parseFloat(e.target.value.replace(/[^0-9.]/g, ''));
+            const raw = e.target.value.replace(/,/g, '.');
+            if (!/^\d*\.?\d*$/.test(raw)) return;
+
+            setDraft(raw);
+
+            if (raw === '' || raw === '.') {
+              onChange(0);
+              return;
+            }
+
+            const n = parseFloat(raw);
             onChange(isNaN(n) ? 0 : n);
           }}
           style={{

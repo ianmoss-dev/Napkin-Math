@@ -18,6 +18,11 @@ This file tracks implementation changes, UX findings, and product-direction idea
   - Active start is now `welcome -> household`
   - Restore fallback now lands in `household` instead of `knowledge`
 - Cleaned up lint issues and render/state problems across key screens and components.
+- Fixed mixed-household income routing so military, civilian, and self-employed combinations no longer depend only on the primary user.
+- Fixed self-employed branching in the post-budget steps so households without a match path do not get stranded in `step2Match`.
+- Replaced branded HYSA links with broader resources in:
+  - `src/screens/Step1CushionScreen.jsx`
+  - `src/screens/Step4EmergencyFundScreen.jsx`
 - Verified current repo state with:
   - `npm run lint`
   - `npm run build`
@@ -34,24 +39,12 @@ This file tracks implementation changes, UX findings, and product-direction idea
 - `knowledgeLevel` was being collected but not used to affect routing, copy, or recommendations.
 - It currently remains in code/storage, but it is no longer part of the required user flow.
 
-### Mixed Household Routing Bug
+### Household-Aware Routing
 
-This still needs work.
-
-- Routing currently depends too heavily on primary `incomeType`.
-- Mixed households are not handled correctly in several cases:
-  - primary `selfEmployed` + partner `military`
-  - primary `military` + partner `selfEmployed`
-  - likely other mixed partner paths
-- `PrepScreen` is also primary-income-only and does not reflect mixed household prep needs.
-- `LESConfirmationScreen` does not fully persist partner income fields.
-
-### Self-Employed / Variable Income Bug
-
-This still needs work.
-
-- Self-employed users currently flow into the later steps in a way that can leave `Step2Match` without a meaningful experience.
-- The post-budget “solutions” flow should branch more intentionally for users without an employer/TSP match concept.
+- Mixed-household routing is now household-aware in the income collection flow and the post-budget steps.
+- Partner military take-home data is now persisted through `LESConfirmationScreen`.
+- Remaining weakness:
+  - `PrepScreen` still reads as primary-income-centric and should eventually adapt its checklist to mixed households.
 
 ## Product Direction Ideas
 
@@ -62,6 +55,8 @@ Preferred direction:
 - Start with triage instead of self-reported knowledge level.
 - Use a short flowchart to determine where the user actually is.
 - Then route into the most relevant solution path.
+- Important current constraint:
+  - the existing `monthlyPicture -> step1..step8` sequence is budget-driven today, so moving triage earlier is an architectural refactor rather than a simple reorder.
 
 Example early triage questions:
 
@@ -92,7 +87,7 @@ Possible future use:
 
 - Adjust tone and explanation depth
 - Personalize concern selectors
-- Surface different “what are you most concerned about?” options
+- Surface different "what are you most concerned about?" options
 
 Important caution:
 
@@ -104,7 +99,8 @@ Important caution:
 Current view:
 
 - Link density is not extreme per individual screen, but there is too much repetition across the app.
-- Some branded links feel closer to endorsements than neutral resources.
+- HYSA links have been shifted away from Goldman Sachs / Ally style brand recommendations toward broader resources.
+- Some later screens still have more links than they need and could eventually be consolidated into a lighter resource pattern.
 
 Potential cleanup direction:
 
@@ -115,10 +111,10 @@ Potential cleanup direction:
 
 ## Suggested Next Priorities
 
-1. Fix mixed-household routing and data persistence
-2. Fix self-employed branching in the post-budget “next steps” flow
-3. Redesign opening flow around triage-first logic
-4. Reduce / consolidate repeated external links
+1. Redesign opening flow around triage-first logic
+2. Decouple early triage from the current budget-derived `step1..step8` recommendation chain
+3. Reduce / consolidate repeated external links across later plan screens
+4. Rework `PrepScreen` so mixed households get a more accurate setup checklist
 5. Consider route-level code splitting to reduce bundle size
 
 ## Verification Notes

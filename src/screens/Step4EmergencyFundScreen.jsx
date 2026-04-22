@@ -23,15 +23,24 @@ function calcEssential(userData) {
     (userData.healthInsurance || 0) +
     (userData.outOfPocketMedical || 0) +
     (userData.childcare || 0) +
-    (userData.debts || []).reduce((s, d) => s + d.minimum, 0)
+    (userData.debts || []).reduce((sum, debt) => sum + debt.minimum, 0)
   );
 }
+
+const HYSA_LINKS = [
+  { label: 'Bankrate - compare high-yield savings accounts', url: 'https://www.bankrate.com/banking/savings/best-high-yield-interests-savings-accounts/' },
+  { label: 'Investopedia - how to choose a high-yield savings account', url: 'https://www.investopedia.com/best-high-yield-savings-accounts-4770633' },
+  { label: 'NCUA credit union locator', url: 'https://mapping.ncua.gov/' },
+];
 
 export default function Step4EmergencyFundScreen({ userData, updateUserData, onNext, onBack }) {
   const [mounted, setMounted] = useState(false);
   const [choice, setChoice] = useState(userData.emergencyFundMonths ?? null);
 
-  useEffect(() => { const t = setTimeout(() => setMounted(true), 50); return () => clearTimeout(t); }, []);
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), 50);
+    return () => clearTimeout(t);
+  }, []);
 
   const essential = calcEssential(userData);
   const target3 = essential * 3;
@@ -60,7 +69,7 @@ export default function Step4EmergencyFundScreen({ userData, updateUserData, onN
       <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 12, fontWeight: 600, color: 'var(--blue)', margin: '24px 0 4px', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Step 4</p>
       <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 32, fontWeight: 700, color: 'var(--navy)', margin: '0 0 8px', lineHeight: 1.2 }}>Emergency Fund</h1>
       <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 16, color: 'var(--gray)', margin: '0 0 8px', lineHeight: 1.5 }}>
-        Your essential monthly expenses come to <strong style={{ color: 'var(--navy)' }}>{formatCurrency(essential)}/month</strong>. That's what you need to cover if your income stops.
+        Your essential monthly expenses come to <strong style={{ color: 'var(--navy)' }}>{formatCurrency(essential)}/month</strong>. That is what you need to cover if your income stops.
       </p>
 
       {isMilitary && (
@@ -104,7 +113,7 @@ export default function Step4EmergencyFundScreen({ userData, updateUserData, onN
               </p>
             ) : breathing <= 0 ? (
               <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: 'var(--gray)', margin: 0 }}>
-                Free up some breathing room first — we'll address that above.
+                Free up some breathing room first. We will address that above.
               </p>
             ) : null}
             {months && (
@@ -115,13 +124,9 @@ export default function Step4EmergencyFundScreen({ userData, updateUserData, onN
           </div>
           <div style={{ marginBottom: 16 }}>
             <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: 600, color: 'var(--gray)', margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              Best place to keep it — a high-yield savings account
+              Where to look
             </p>
-            <ActionLink label="Marcus by Goldman Sachs" url="https://www.marcus.com" />
-            <ActionLink label="Ally Bank" url="https://www.ally.com" />
-            <ActionLink label="NerdWallet — Best HYSA rates" url="https://www.nerdwallet.com/best/banking/high-yield-online-savings-accounts" />
-            {isMilitary && <ActionLink label="Navy Federal Credit Union" url="https://www.navyfederal.org" />}
-            {isMilitary && <ActionLink label="USAA" url="https://www.usaa.com" />}
+            {HYSA_LINKS.map((link) => <ActionLink key={link.url} {...link} />)}
           </div>
         </>
       )}

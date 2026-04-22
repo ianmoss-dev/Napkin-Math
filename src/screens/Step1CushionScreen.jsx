@@ -3,13 +3,9 @@ import { formatCurrency } from '../utils/formatters';
 import { getNextStepAfterCushion } from '../utils/flow';
 
 const LINKS = [
-  { label: 'Marcus by Goldman Sachs', url: 'https://www.marcus.com' },
-  { label: 'Ally Bank', url: 'https://www.ally.com' },
-  { label: 'NerdWallet — Best HYSA rates', url: 'https://www.nerdwallet.com/best/banking/high-yield-online-savings-accounts' },
-];
-const MILITARY_LINKS = [
-  { label: 'Navy Federal Credit Union', url: 'https://www.navyfederal.org' },
-  { label: 'USAA', url: 'https://www.usaa.com' },
+  { label: 'Bankrate - compare high-yield savings accounts', url: 'https://www.bankrate.com/banking/savings/best-high-yield-interests-savings-accounts/' },
+  { label: 'Investopedia - how to choose a high-yield savings account', url: 'https://www.investopedia.com/best-high-yield-savings-accounts-4770633' },
+  { label: 'NCUA credit union locator', url: 'https://mapping.ncua.gov/' },
 ];
 
 function ActionLink({ label, url }) {
@@ -25,18 +21,18 @@ export default function Step1CushionScreen({ userData, updateUserData, onNext, o
   const [mounted, setMounted] = useState(false);
   const [answer, setAnswer] = useState(userData.hasCushion ?? null);
 
-  useEffect(() => { const t = setTimeout(() => setMounted(true), 50); return () => clearTimeout(t); }, []);
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), 50);
+    return () => clearTimeout(t);
+  }, []);
 
   const breathing = userData.breathingRoom || 0;
   const monthsNeeded = breathing > 0 ? Math.ceil(1000 / breathing) : null;
-  const isMilitary = userData.incomeType === 'military' || userData.partnerIncomeType === 'military';
 
   const handleSelect = (val) => {
     setAnswer(val);
     updateUserData({ hasCushion: val });
   };
-
-  const allLinks = isMilitary ? [...LINKS, ...MILITARY_LINKS] : LINKS;
 
   return (
     <div style={{
@@ -53,14 +49,14 @@ export default function Step1CushionScreen({ userData, updateUserData, onNext, o
         The $1,000 Cushion
       </h1>
       <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 16, color: 'var(--gray)', margin: '0 0 24px', lineHeight: 1.5 }}>
-        Do you have $1,000 sitting somewhere you don't touch?
+        Do you have $1,000 sitting somewhere you do not touch?
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
         {[
           { val: 'yes', label: 'Yes', sub: 'I have a $1,000+ buffer I leave alone.' },
           { val: 'kindof', label: 'Kind of', sub: 'I have some savings but dip into it.' },
-          { val: 'no', label: 'No', sub: "I don't have a separate cushion right now." },
+          { val: 'no', label: 'No', sub: 'I do not have a separate cushion right now.' },
         ].map(opt => {
           const active = answer === opt.val;
           return (
@@ -80,7 +76,7 @@ export default function Step1CushionScreen({ userData, updateUserData, onNext, o
       {answer === 'yes' && (
         <div style={{ background: 'var(--light-green)', borderRadius: 12, padding: 16 }}>
           <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 15, color: 'var(--green)', margin: 0, fontWeight: 600 }}>
-            ✓ You've got the cushion. On to Step 2.
+            You have the cushion. On to the next step.
           </p>
         </div>
       )}
@@ -96,14 +92,14 @@ export default function Step1CushionScreen({ userData, updateUserData, onNext, o
                 {monthsNeeded} {monthsNeeded === 1 ? 'month' : 'months'} to $1,000
               </p>
               <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: 'var(--gray)', margin: 0 }}>
-                Open a high-yield savings account, name it "Do Not Touch," and set up an auto-transfer on payday.
+                Open a high-yield savings account, name it &quot;Do Not Touch,&quot; and set up an auto-transfer on payday.
               </p>
             </div>
           )}
           <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: 600, color: 'var(--gray)', margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-            Where to open one
+            Where to look
           </p>
-          {allLinks.map(l => <ActionLink key={l.url} {...l} />)}
+          {LINKS.map(link => <ActionLink key={link.url} {...link} />)}
         </div>
       )}
 
