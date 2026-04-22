@@ -29,6 +29,10 @@ import EntertainmentScreen from './screens/EntertainmentScreen';
 import GivingScreen from './screens/GivingScreen';
 import TransitionScreen from './screens/TransitionScreen';
 import MonthlyPictureScreen from './screens/MonthlyPictureScreen';
+import Step1CushionScreen from './screens/Step1CushionScreen';
+import Step2MatchScreen from './screens/Step2MatchScreen';
+import Step3DebtScreen from './screens/Step3DebtScreen';
+import Step4EmergencyFundScreen from './screens/Step4EmergencyFundScreen';
 
 const ALL_SCREENS = [
   'welcome', 'knowledge', 'household', 'partnerIncome',
@@ -154,6 +158,10 @@ function App() {
       case 'budgetGiving':         return <GivingScreen {...props} />;
       case 'transition':           return <TransitionScreen {...props} />;
       case 'monthlyPicture':       return <MonthlyPictureScreen {...props} />;
+      case 'step1Cushion':         return <Step1CushionScreen {...props} />;
+      case 'step2Match':           return <Step2MatchScreen {...props} />;
+      case 'step3Debt':            return <Step3DebtScreen {...props} />;
+      case 'step4EmergencyFund':   return <Step4EmergencyFundScreen {...props} />;
       default:
         return (
           <div style={{ padding: '80px 24px 24px', color: 'var(--gray)', fontFamily: 'DM Sans, sans-serif' }}>
