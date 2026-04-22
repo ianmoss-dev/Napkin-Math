@@ -95,6 +95,8 @@ export default function PDFDocument({ userData }) {
     { label: 'Clothing & Personal Care', value: userData.clothing },
     { label: 'Entertainment', value: userData.entertainment },
     { label: 'Giving', value: userData.giving },
+    { label: 'Gifts', value: userData.gifts },
+    { label: 'Travel', value: userData.travel },
   ].filter(l => l.value);
 
   const subTotal = subs.reduce((s, sub) => s + (sub.price || 0), 0);

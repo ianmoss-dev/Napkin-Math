@@ -5,7 +5,7 @@ function calcTotalExpenses(userData) {
     'housing', 'utilities', 'groceries', 'diningOut',
     'carPayment', 'gasAndFuel', 'carInsurance',
     'phone', 'internet', 'healthInsurance', 'outOfPocketMedical',
-    'childcare', 'clothing', 'entertainment', 'giving',
+    'childcare', 'clothing', 'entertainment', 'giving', 'gifts', 'travel',
   ];
   const fixed = fields.reduce((sum, f) => sum + (userData[f] || 0), 0);
   const subTotal = (userData.subscriptions || []).reduce((sum, s) => sum + (s.price || 0), 0);

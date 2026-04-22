@@ -8,7 +8,9 @@ export default function GroceriesScreen({ userData, updateUserData, onNext, onBa
       heading="Groceries"
       subtext="In-home food only — we'll ask about restaurants separately."
       percentageBands={BANDS}
+      binCap={1200}
       fieldName="groceries"
+      groceryMode
       userData={userData}
       updateUserData={updateUserData}
       onNext={() => onNext('budgetDining')}

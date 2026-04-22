@@ -9,6 +9,7 @@ export default function CarPaymentScreen({ userData, updateUserData, onNext, onB
       heading="Car payment"
       subtext="Your monthly loan or lease payment. Enter $0 if you own outright."
       percentageBands={BANDS}
+      binCap={900}
       fieldName="carPayment"
       flagAbovePct={15}
       flagCopy="Car payment above 15% of income is significant. Total car costs ideally stay under 20% combined."

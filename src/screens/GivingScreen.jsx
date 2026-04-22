@@ -10,11 +10,11 @@ export default function GivingScreen({ userData, updateUserData, onNext, onBack 
 
   useEffect(() => { const t = setTimeout(() => setMounted(true), 50); return () => clearTimeout(t); }, []);
 
-  const bins = getBins(userData.monthlyTakeHome || 0, BANDS);
+  const bins = getBins(userData.monthlyTakeHome || 0, BANDS, 1000);
 
   const handleContinue = (value) => {
     updateUserData({ giving: value });
-    onNext('transition');
+    onNext('budgetGifts');
   };
 
   return (

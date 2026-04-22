@@ -101,13 +101,15 @@ export default function BinSelector({ bins, selectedValue, onSelect }) {
       }}>
         {bins.map((bin) => {
           const isActive = activeBin === bin.value;
+          const hasSub = !!bin.sub;
           return (
             <button
               key={bin.value}
               onClick={() => handleBinClick(bin)}
               style={{
-                height: 40,
+                minHeight: 40,
                 paddingInline: 14,
+                paddingBlock: hasSub ? 8 : 0,
                 borderRadius: 20,
                 border: `1.5px solid ${isActive ? 'var(--navy)' : '#D0D0D0'}`,
                 background: isActive ? 'var(--navy)' : '#fff',
@@ -117,10 +119,21 @@ export default function BinSelector({ bins, selectedValue, onSelect }) {
                 fontWeight: isActive ? 600 : 400,
                 cursor: 'pointer',
                 transition: 'background 150ms, color 150ms, border-color 150ms',
-                whiteSpace: 'nowrap',
+                whiteSpace: hasSub ? 'normal' : 'nowrap',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 1,
+                textAlign: 'center',
               }}
             >
-              {bin.label}
+              <span>{bin.label}</span>
+              {hasSub && (
+                <span style={{ fontSize: 10, opacity: 0.7, fontStyle: 'italic', fontWeight: 400 }}>
+                  {bin.sub}
+                </span>
+              )}
             </button>
           );
         })}

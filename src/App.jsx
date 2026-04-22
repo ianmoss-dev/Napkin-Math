@@ -17,7 +17,7 @@ import UtilitiesScreen from './screens/UtilitiesScreen';
 import GroceriesScreen from './screens/GroceriesScreen';
 import DiningOutScreen from './screens/DiningOutScreen';
 import CarPaymentScreen from './screens/CarPaymentScreen';
-import GasScreen from './screens/GasScreen';
+import CarMaintenanceScreen from './screens/CarMaintenanceScreen';
 import CarInsuranceScreen from './screens/CarInsuranceScreen';
 import PhoneScreen from './screens/PhoneScreen';
 import InternetScreen from './screens/InternetScreen';
@@ -39,6 +39,8 @@ import Step5ModerateDebtScreen from './screens/Step5ModerateDebtScreen';
 import Step6RetirementScreen from './screens/Step6RetirementScreen';
 import Step7GoalsScreen from './screens/Step7GoalsScreen';
 import Step8OptimizeScreen from './screens/Step8OptimizeScreen';
+import GiftsScreen from './screens/GiftsScreen';
+import TravelScreen from './screens/TravelScreen';
 import ScoreScreen from './screens/ScoreScreen';
 import PDFScreen from './screens/PDFScreen';
 import RetirementCalculatorScreen from './screens/RetirementCalculatorScreen';
@@ -62,6 +64,7 @@ const ALL_SCREENS = [
   'budgetPhone', 'budgetInternet', 'budgetHealthInsurance', 'budgetMedical',
   'budgetSubscriptions', 'budgetChildcare',
   'budgetDebt', 'budgetClothing', 'budgetEntertainment', 'budgetGiving',
+  'budgetGifts', 'budgetTravel',
   'transition', 'monthlyPicture',
   'step1Cushion', 'step2Match', 'step3Debt', 'step4EmergencyFund',
   'step5ModerateDebt', 'step6Retirement', 'step7Goals', 'step8Optimize',
@@ -109,6 +112,7 @@ const initialUserData = {
   hasHSA: null, subscriptions: [], childcare: null,
   debts: [],
   clothing: null, entertainment: null, giving: null,
+  gifts: null, travel: null,
 
   // Computed
   totalMonthlyExpenses: 0, breathingRoom: 0, napkinScale: null,
@@ -226,7 +230,7 @@ function App() {
       case 'budgetGroceries':      return <GroceriesScreen {...props} />;
       case 'budgetDining':         return <DiningOutScreen {...props} />;
       case 'budgetCarPayment':     return <CarPaymentScreen {...props} />;
-      case 'budgetGas':            return <GasScreen {...props} />;
+      case 'budgetGas':            return <CarMaintenanceScreen {...props} />;
       case 'budgetCarInsurance':   return <CarInsuranceScreen {...props} />;
       case 'budgetPhone':          return <PhoneScreen {...props} />;
       case 'budgetInternet':       return <InternetScreen {...props} />;
@@ -238,6 +242,8 @@ function App() {
       case 'budgetClothing':       return <ClothingScreen {...props} />;
       case 'budgetEntertainment':  return <EntertainmentScreen {...props} />;
       case 'budgetGiving':         return <GivingScreen {...props} />;
+      case 'budgetGifts':          return <GiftsScreen {...props} />;
+      case 'budgetTravel':         return <TravelScreen {...props} />;
       case 'transition':           return <TransitionScreen {...props} />;
       case 'monthlyPicture':       return <MonthlyPictureScreen {...props} />;
       case 'step1Cushion':         return <Step1CushionScreen {...props} />;

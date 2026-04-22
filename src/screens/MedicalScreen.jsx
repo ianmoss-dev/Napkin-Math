@@ -2,6 +2,7 @@ import { useState } from 'react';
 import BudgetScreen from './BudgetScreen';
 
 const BANDS = [[1, 2], [2, 4], [4, 6], [6, 100]];
+const CAP = 400;
 
 export default function MedicalScreen({ userData, updateUserData, onNext, onBack }) {
   const [selected, setSelected] = useState(userData.outOfPocketMedical ?? null);
@@ -17,6 +18,7 @@ export default function MedicalScreen({ userData, updateUserData, onNext, onBack
       heading="Out of pocket medical"
       subtext="Copays, prescriptions, dental, vision — your monthly average."
       percentageBands={BANDS}
+      binCap={CAP}
       fieldName="outOfPocketMedical"
       userData={userData}
       updateUserData={updateUserData}

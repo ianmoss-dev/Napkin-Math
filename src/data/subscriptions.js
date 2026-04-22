@@ -30,6 +30,7 @@ export const SUBSCRIPTIONS = [
   { id: 'walmart_plus',   name: 'Walmart+',            category: 'Shopping & Convenience', price: 12.95 },
   { id: 'instacart',      name: 'Instacart+',          category: 'Shopping & Convenience', price: 9.99 },
   { id: 'dashpass',       name: 'DashPass',            category: 'Shopping & Convenience', price: 9.99 },
+  { id: 'uber_one',       name: 'Uber One',            category: 'Shopping & Convenience', price: 9.99 },
 
   // Productivity & Tech
   { id: 'icloud',         name: 'iCloud+',             category: 'Productivity & Tech',    price: 9.99 },
@@ -39,7 +40,16 @@ export const SUBSCRIPTIONS = [
   { id: 'dropbox',        name: 'Dropbox',             category: 'Productivity & Tech',    price: 9.99 },
   { id: '1password',      name: '1Password',           category: 'Productivity & Tech',    price: 3.99 },
   { id: 'chatgpt',        name: 'ChatGPT Plus',        category: 'Productivity & Tech',    price: 20.00 },
+  { id: 'claude',         name: 'Claude Pro',          category: 'Productivity & Tech',    price: 20.00 },
+  { id: 'gemini',         name: 'Gemini Advanced',     category: 'Productivity & Tech',    price: 19.99 },
   { id: 'vpn',            name: 'VPN',                 category: 'Productivity & Tech',    price: 5.00 },
+
+  // Credit Card Annual Fees
+  { id: 'cc_chase_pref',  name: 'Chase Sapphire Preferred ($95/yr)',  category: 'Credit Card Fees', price: 7.92 },
+  { id: 'cc_chase_res',   name: 'Chase Sapphire Reserve ($550/yr)',   category: 'Credit Card Fees', price: 45.83 },
+  { id: 'cc_amex_gold',   name: 'Amex Gold ($325/yr)',                category: 'Credit Card Fees', price: 27.08 },
+  { id: 'cc_amex_plat',   name: 'Amex Platinum ($695/yr)',            category: 'Credit Card Fees', price: 57.92 },
+  { id: 'cc_other',       name: 'Other card fee',                     category: 'Credit Card Fees', price: 0 },
 
   // Gaming
   { id: 'xbox',           name: 'Xbox Game Pass',      category: 'Gaming',                 price: 14.99 },

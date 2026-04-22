@@ -65,13 +65,29 @@ export function toMonthly(amount, frequency) {
   return Math.round(amount * (map[frequency] ?? 1));
 }
 
-export function getBins(monthlyIncome, bands) {
-  return bands.map(([lo, hi]) => ({
-    label:
-      '$' + Math.round(monthlyIncome * lo / 100).toLocaleString('en-US') +
-      ' – $' + Math.round(monthlyIncome * hi / 100).toLocaleString('en-US') + '/mo',
-    value: Math.round(monthlyIncome * ((lo + hi) / 2) / 100),
-  }));
+export function getBins(monthlyIncome, bands, dollarCap = null) {
+  return bands.map(([lo, hi], i) => {
+    const isLast = i === bands.length - 1 && hi >= 50;
+    const loVal = Math.round(monthlyIncome * lo / 100);
+
+    if (isLast) {
+      const capVal = dollarCap ?? Math.round(loVal * 1.75);
+      const effectiveLo = Math.min(loVal, capVal);
+      return {
+        label: `$${effectiveLo.toLocaleString('en-US')} – $${capVal.toLocaleString('en-US')}+/mo`,
+        value: Math.round((effectiveLo + capVal) / 2),
+      };
+    }
+
+    const hiVal = dollarCap
+      ? Math.min(Math.round(monthlyIncome * hi / 100), dollarCap)
+      : Math.round(monthlyIncome * hi / 100);
+    const midVal = Math.round((loVal + hiVal) / 2);
+    return {
+      label: `$${loVal.toLocaleString('en-US')} – $${hiVal.toLocaleString('en-US')}/mo`,
+      value: midVal,
+    };
+  });
 }
 
 const RISK = {

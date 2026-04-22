@@ -8,6 +8,7 @@ export default function CarInsuranceScreen({ userData, updateUserData, onNext, o
       heading="Car insurance"
       subtext="Divide annual premium by 12 if you pay yearly."
       percentageBands={BANDS}
+      binCap={600}
       fieldName="carInsurance"
       userData={userData}
       updateUserData={updateUserData}

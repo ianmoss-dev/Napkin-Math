@@ -2,14 +2,19 @@ import { useEffect, useState } from 'react';
 import BinSelector from '../components/BinSelector';
 import { getBins } from '../utils/calculations';
 
+const GROCERY_SUBS = ['Basics & staples', 'Home cooking', 'Fresh & varied', 'Organic or premium'];
+
 export default function BudgetScreen({
   heading,
   subtext,
   percentageBands,
+  fixedBins,
+  binCap,
   fieldName,
   flagAbovePct,
   flagCopy,
   binOverrides,
+  groceryMode,
   userData,
   updateUserData,
   onNext,
@@ -24,9 +29,13 @@ export default function BudgetScreen({
   useEffect(() => { const t = setTimeout(() => setMounted(true), 50); return () => clearTimeout(t); }, []);
 
   const income = userData.monthlyTakeHome || 0;
-  const rawBins = getBins(income, percentageBands);
-  const bins = binOverrides
-    ? rawBins.map((b, i) => binOverrides[i] ? { ...b, label: binOverrides[i] } : b)
+  const rawBins = fixedBins ? fixedBins : getBins(income, percentageBands, binCap ?? null);
+  const bins = (binOverrides || groceryMode)
+    ? rawBins.map((b, i) => ({
+        ...b,
+        ...(binOverrides?.[i] ? { label: binOverrides[i] } : {}),
+        ...(groceryMode && GROCERY_SUBS[i] ? { sub: GROCERY_SUBS[i] } : {}),
+      }))
     : rawBins;
 
   const handleSelect = (value) => {

@@ -8,6 +8,7 @@ export default function UtilitiesScreen({ userData, updateUserData, onNext, onBa
       heading="Utilities"
       subtext="Electric, gas, water, and trash — bundled together."
       percentageBands={BANDS}
+      binCap={450}
       fieldName="utilities"
       userData={userData}
       updateUserData={updateUserData}
