@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { conservativeMonthly } from '../utils/calculations';
 import { formatCurrency } from '../utils/formatters';
+import { getNextIncomeScreen } from '../utils/flow';
 
 const inputStyle = {
   height: 56, border: '2px solid #E0E0E0', borderRadius: 12,
@@ -33,6 +34,12 @@ function IncomeInputGroup({ label, good, setGood, typical, setTypical, tough, se
 export default function IrregularIncomeScreen({ userData, updateUserData, onNext, onBack }) {
   const [mounted, setMounted] = useState(false);
   const isPartner = userData.householdType === 'partner';
+  const needsM1Variable = userData.incomeType === 'selfEmployed';
+  const needsM2Variable = userData.partnerIncomeType === 'selfEmployed';
+  const additionalTotal = (userData.additionalIncome || []).reduce((sum, item) => sum + (Number(item.amount) || 0) * (item.regularity || 1), 0);
+  const regularBase = (needsM1Variable ? 0 : (userData.m1TakeHome || 0))
+    + (needsM2Variable ? 0 : (userData.m2TakeHome || 0))
+    + additionalTotal;
 
   const [m1Good, setM1Good]       = useState(userData.goodMonth ? String(userData.goodMonth) : '');
   const [m1Typical, setM1Typical] = useState(userData.typicalMonth ? String(userData.typicalMonth) : '');
@@ -42,45 +49,57 @@ export default function IrregularIncomeScreen({ userData, updateUserData, onNext
   const [m2Typical, setM2Typical] = useState(userData.p2TypicalMonth ? String(userData.p2TypicalMonth) : '');
   const [m2Tough, setM2Tough]     = useState(userData.p2ToughMonth ? String(userData.p2ToughMonth) : '');
 
-  const [sliderValue, setSliderValue] = useState(null);
+  const initialSliderValue = (() => {
+    if (userData.monthlyTakeHome > regularBase) return userData.monthlyTakeHome - regularBase;
+    if (needsM1Variable && userData.goodMonth && userData.typicalMonth && userData.toughMonth) {
+      const savedM2Conservative = (needsM2Variable
+        && userData.p2GoodMonth && userData.p2TypicalMonth && userData.p2ToughMonth)
+        ? conservativeMonthly(userData.p2GoodMonth, userData.p2TypicalMonth, userData.p2ToughMonth)
+        : 0;
+
+      return conservativeMonthly(userData.goodMonth, userData.typicalMonth, userData.toughMonth) + savedM2Conservative;
+    }
+    if (!needsM1Variable && needsM2Variable && userData.p2GoodMonth && userData.p2TypicalMonth && userData.p2ToughMonth) {
+      return conservativeMonthly(userData.p2GoodMonth, userData.p2TypicalMonth, userData.p2ToughMonth);
+    }
+    return null;
+  })();
+
+  const [sliderValue, setSliderValue] = useState(initialSliderValue);
 
   useEffect(() => { const t = setTimeout(() => setMounted(true), 50); return () => clearTimeout(t); }, []);
 
-  const m1AllFilled = m1Good && m1Typical && m1Tough;
-  const m2AllFilled = !isPartner || (userData.partnerIncomeType === 'selfEmployed' ? (m2Good && m2Typical && m2Tough) : true);
+  const m1AllFilled = !needsM1Variable || (m1Good && m1Typical && m1Tough);
+  const m2AllFilled = !needsM2Variable || (m2Good && m2Typical && m2Tough);
 
-  const m1Conservative = m1AllFilled
+  const m1Conservative = (needsM1Variable && m1AllFilled)
     ? conservativeMonthly(Number(m1Good), Number(m1Typical), Number(m1Tough))
     : 0;
 
-  const m2Conservative = (isPartner && userData.partnerIncomeType === 'selfEmployed' && m2AllFilled)
+  const m2Conservative = (needsM2Variable && m2AllFilled)
     ? conservativeMonthly(Number(m2Good), Number(m2Typical), Number(m2Tough))
     : 0;
 
   const combinedConservative = m1Conservative + m2Conservative;
   const combinedGood = (Number(m1Good) || 0) + (Number(m2Good) || 0);
 
-  // Initialize slider when estimate is available
-  useEffect(() => {
-    if (combinedConservative > 0 && sliderValue === null) {
-      setSliderValue(combinedConservative);
-    }
-  }, [combinedConservative]);
-
   const currentSlider = sliderValue ?? combinedConservative;
-  const canContinue = m1AllFilled && m2AllFilled && currentSlider > 0;
+  const householdTotal = regularBase + currentSlider;
+  const canContinue = m1AllFilled && m2AllFilled && householdTotal > 0;
 
   const handleContinue = () => {
-    updateUserData({
+    const updates = {
       goodMonth: Number(m1Good) || 0,
       typicalMonth: Number(m1Typical) || 0,
       toughMonth: Number(m1Tough) || 0,
       p2GoodMonth: Number(m2Good) || 0,
       p2TypicalMonth: Number(m2Typical) || 0,
       p2ToughMonth: Number(m2Tough) || 0,
-      monthlyTakeHome: currentSlider,
-    });
-    onNext('budgetHousing');
+      monthlyTakeHome: householdTotal,
+    };
+    const nextUserData = { ...userData, ...updates };
+    updateUserData(updates);
+    onNext(getNextIncomeScreen(nextUserData));
   };
 
   return (
@@ -100,14 +119,16 @@ export default function IrregularIncomeScreen({ userData, updateUserData, onNext
         Irregular income makes budgeting harder than most advice accounts for. We&rsquo;re going to build your plan around what you can reliably count on — not your best month.
       </p>
 
-      <IncomeInputGroup
-        label={isPartner ? 'Your Income' : undefined}
-        good={m1Good} setGood={setM1Good}
-        typical={m1Typical} setTypical={setM1Typical}
-        tough={m1Tough} setTough={setM1Tough}
-      />
+      {needsM1Variable && (
+        <IncomeInputGroup
+          label={isPartner ? 'Your Income' : undefined}
+          good={m1Good} setGood={setM1Good}
+          typical={m1Typical} setTypical={setM1Typical}
+          tough={m1Tough} setTough={setM1Tough}
+        />
+      )}
 
-      {isPartner && userData.partnerIncomeType === 'selfEmployed' && (
+      {needsM2Variable && (
         <IncomeInputGroup
           label="Partner's Income"
           good={m2Good} setGood={setM2Good}
@@ -117,17 +138,22 @@ export default function IrregularIncomeScreen({ userData, updateUserData, onNext
       )}
 
       {/* Live estimate card */}
-      {m1AllFilled && (
+      {(needsM1Variable || needsM2Variable) && m1AllFilled && m2AllFilled && (
         <div style={{ background: '#fff', borderRadius: 16, padding: 20, marginBottom: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
           <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 12, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--blue)', margin: '0 0 12px' }}>
             We&rsquo;ll build your plan around
           </p>
           <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 36, fontWeight: 700, color: 'var(--navy)' }}>
-            {formatCurrency(currentSlider)}<span style={{ fontSize: 18, fontFamily: 'DM Sans, sans-serif' }}>/month</span>
+            {formatCurrency(householdTotal)}<span style={{ fontSize: 18, fontFamily: 'DM Sans, sans-serif' }}>/month</span>
           </div>
           <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: 'var(--gray)', marginTop: 4 }}>
-            {formatCurrency(currentSlider * 12)}/year
+            {formatCurrency(householdTotal * 12)}/year
           </div>
+          {regularBase > 0 && (
+            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: 'var(--gray)', margin: '8px 0 0', lineHeight: 1.5 }}>
+              This includes {formatCurrency(regularBase)}/month from regular household income and steady extras.
+            </p>
+          )}
           <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontStyle: 'italic', color: 'var(--gray)', margin: '12px 0 16px', lineHeight: 1.5 }}>
             A weighted estimate that accounts for slow months without assuming the worst.
           </p>

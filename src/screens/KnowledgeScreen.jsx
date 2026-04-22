@@ -25,16 +25,12 @@ function KnowledgeScreen({ userData, updateUserData, onNext, onBack }) {
   const [mounted, setMounted] = useState(false);
   const [selected, setSelected] = useState(userData.knowledgeLevel ?? null);
   const [openInfo, setOpenInfo] = useState(null);
-  const [btnVisible, setBtnVisible] = useState(!!userData.knowledgeLevel);
+  const btnVisible = !!selected;
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 50);
     return () => clearTimeout(t);
   }, []);
-
-  useEffect(() => {
-    if (selected) setBtnVisible(true);
-  }, [selected]);
 
   const handleContinue = () => {
     updateUserData({ knowledgeLevel: selected });

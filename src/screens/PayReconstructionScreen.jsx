@@ -1,9 +1,10 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import CareerEarningsChart from '../components/CareerEarningsChart';
 import { getBasePay } from '../data/militaryPayTables';
 import { getBAH, getMHAName } from '../data/bahRates';
 import { getBAS } from '../data/basRates';
 import { federalTaxAdvantage } from '../utils/calculations';
+import { getNextIncomeScreen } from '../utils/flow';
 
 const RANKS = {
   'Enlisted': ['E-1','E-2','E-3','E-4','E-5','E-6','E-7','E-8','E-9'],
@@ -112,12 +113,9 @@ export default function PayReconstructionScreen({ userData, updateUserData, onNe
       [`${m}RMC`]: rmc,
       [`${m}RMCAnnual`]: rmc * 12,
     };
+    const nextUserData = { ...userData, ...updates };
     updateUserData(updates);
-    if (memberNumber === 1) {
-      onNext(userData.isDualMilitary ? 'payReconstruction2' : 'pension');
-    } else {
-      onNext('pension');
-    }
+    onNext(getNextIncomeScreen(nextUserData));
   };
 
   const updateSP = (key, val) => setSpecialPays(p => ({ ...p, [key]: val }));

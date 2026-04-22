@@ -51,11 +51,13 @@ function loadSaved() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 const ALL_SCREENS = [
-  'welcome', 'knowledge', 'household', 'partnerIncome',
+  'welcome', 'household', 'partnerIncome',
   'incomeType', 'prep', 'spendingPhilosophy',
   'payReconstruction1', 'payReconstruction2', 'pension',
   'lesConfirmation', 'irregularIncome',
@@ -123,7 +125,50 @@ const initialUserData = {
 };
 
 const TIMER_DURATION = 10 * 60 * 1000;
-const EXEMPT_SCREENS = new Set(['welcome', 'scoreScreen', 'pdfScreen', 'knowledge']);
+const EXEMPT_SCREENS = new Set(['welcome', 'scoreScreen', 'pdfScreen']);
+const SKIP_BACK_SCREENS = new Set(['transition']);
+
+function getProgressScreens(userData) {
+  const screens = ['household'];
+
+  if (userData.householdType === 'partner') {
+    screens.push('partnerIncome');
+  }
+
+  screens.push('incomeType', 'prep', 'spendingPhilosophy');
+
+  if (userData.incomeType === 'military') {
+    screens.push('payReconstruction1');
+    if (userData.isDualMilitary) {
+      screens.push('payReconstruction2');
+    }
+    screens.push('pension', 'lesConfirmation');
+  } else if (userData.incomeType === 'selfEmployed') {
+    screens.push('irregularIncome');
+  } else if (userData.incomeType === 'civilian') {
+    screens.push('lesConfirmation');
+  }
+
+  screens.push(
+    'budgetHousing', 'budgetUtilities', 'budgetGroceries', 'budgetDining',
+    'budgetCarPayment', 'budgetGas', 'budgetCarInsurance', 'budgetPhone',
+    'budgetInternet', 'budgetHealthInsurance', 'budgetMedical', 'budgetSubscriptions'
+  );
+
+  if (userData.householdType === 'partner' || userData.m1Dependents || userData.m2Dependents) {
+    screens.push('budgetChildcare');
+  }
+
+  screens.push(
+    'budgetDebt', 'budgetClothing', 'budgetEntertainment', 'budgetGiving',
+    'budgetGifts', 'budgetTravel', 'transition', 'monthlyPicture',
+    'step1Cushion', 'step2Match', 'step3Debt', 'step4EmergencyFund',
+    'step5ModerateDebt', 'step6Retirement', 'step7Goals', 'step8Optimize',
+    'scoreScreen', 'pdfScreen', 'retirementCalc'
+  );
+
+  return screens;
+}
 
 function App() {
   const saved = loadSaved();
@@ -137,7 +182,27 @@ function App() {
   const save = (ud, screen, hist) => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ userData: ud, currentScreen: screen, history: hist }));
-    } catch {}
+    } catch {
+      // Ignore storage failures and continue in-memory.
+    }
+  };
+
+  const clearTimer = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+
+  const applyNavigation = (screen, hist, nextUserData = userData) => {
+    if (EXEMPT_SCREENS.has(screen)) {
+      clearTimer();
+      setShowTimerOverlay(false);
+    }
+
+    setHistory(hist);
+    setCurrentScreen(screen);
+    save(nextUserData, screen, hist);
   };
 
   const updateUserData = (updates) => {
@@ -150,62 +215,70 @@ function App() {
 
   const navigate = (screen) => {
     const newHistory = [...history, screen];
-    setHistory(newHistory);
-    setCurrentScreen(screen);
-    save(userData, screen, newHistory);
+    applyNavigation(screen, newHistory);
   };
 
   const goBack = () => {
     if (history.length > 1) {
-      const newHistory = history.slice(0, -1);
+      let newHistory = history.slice(0, -1);
+
+      while (newHistory.length > 1 && SKIP_BACK_SCREENS.has(newHistory[newHistory.length - 1])) {
+        newHistory = newHistory.slice(0, -1);
+      }
+
       const prev = newHistory[newHistory.length - 1];
-      setHistory(newHistory);
-      setCurrentScreen(prev);
-      save(userData, prev, newHistory);
+      applyNavigation(prev, newHistory);
     }
   };
 
   const startFresh = () => {
-    try { localStorage.removeItem(STORAGE_KEY); } catch {}
-    setUserData(initialUserData);
-    setHistory(['welcome']);
-    navigate('knowledge');
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // Ignore storage failures and continue with a fresh in-memory session.
+    }
+    const nextUserData = { ...initialUserData };
+    const newHistory = ['welcome', 'household'];
+    clearTimer();
+    setShowTimerOverlay(false);
+    setUserData(nextUserData);
+    applyNavigation('household', newHistory, nextUserData);
   };
 
   const restoreCode = (decoded) => {
-    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // Ignore storage failures and continue with restored in-memory data.
+    }
     const next = { ...initialUserData, ...decoded };
     setUserData(next);
-    const screen = decoded.napkinScale ? 'scoreScreen' : decoded.monthlyTakeHome ? 'monthlyPicture' : 'knowledge';
+    const screen = decoded.napkinScale ? 'scoreScreen' : decoded.monthlyTakeHome ? 'monthlyPicture' : 'household';
     const newHistory = ['welcome', screen];
-    setHistory(newHistory);
-    setCurrentScreen(screen);
-    save(next, screen, newHistory);
+    applyNavigation(screen, newHistory, next);
   };
 
   // Start timer when user leaves welcome screen
   useEffect(() => {
-    if (currentScreen === 'welcome' || EXEMPT_SCREENS.has(currentScreen)) return;
-    if (timerRef.current) return;
+    if (currentScreen === 'welcome' || EXEMPT_SCREENS.has(currentScreen)) {
+      clearTimer();
+      return undefined;
+    }
+    if (timerRef.current) return undefined;
     startTimeRef.current = Date.now();
     timerRef.current = setTimeout(() => {
       setShowTimerOverlay(true);
     }, TIMER_DURATION);
-    return () => {};
+    return undefined;
   }, [currentScreen]);
 
-  // Clear timer if user reaches end screens
-  useEffect(() => {
-    if (EXEMPT_SCREENS.has(currentScreen) && currentScreen !== 'welcome') {
-      if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
-      setShowTimerOverlay(false);
-    }
-  }, [currentScreen]);
-
-  // Progress: use history depth as proxy for actual completion
-  const ESTIMATED_TOTAL = 32;
-  const progressPct = currentScreen === 'welcome' ? 0
-    : Math.min(99, Math.round((history.length / ESTIMATED_TOTAL) * 100));
+  const progressScreens = getProgressScreens(userData);
+  const progressIndex = progressScreens.indexOf(currentScreen);
+  const progressPct = currentScreen === 'welcome'
+    ? 0
+    : progressIndex === -1
+      ? Math.min(99, Math.round((history.length / Math.max(progressScreens.length, 1)) * 100))
+      : Math.round(((progressIndex + 1) / progressScreens.length) * 100);
 
   const showProgress = currentScreen !== 'welcome';
   const saveCode = generateSaveCode(userData);

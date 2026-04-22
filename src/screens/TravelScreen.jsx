@@ -64,7 +64,7 @@ const FLIGHT_COSTS = [
   { label: '$700+', value: 900 },
 ];
 
-export default function TravelScreen({ userData, updateUserData, onNext, onBack }) {
+export default function TravelScreen({ updateUserData, onNext, onBack }) {
   const [mounted, setMounted] = useState(false);
 
   // Short trips (weekend trips, visiting family)
@@ -91,9 +91,7 @@ export default function TravelScreen({ userData, updateUserData, onNext, onBack 
 
   useEffect(() => { const t = setTimeout(() => setMounted(true), 50); return () => clearTimeout(t); }, []);
 
-  const {
-    shortMonthly, vacMonthly, flightMonthly, vacFlightMonthly, total,
-  } = useMemo(() => {
+  const { total } = useMemo(() => {
     const short = skipShort ? 0 : (shortTripsPerYear * shortNights * shortHotelCost) / 12;
     const vac = skipVacation ? 0 : (vacationsPerYear * vacNights * vacHotelCost) / 12;
     const flights = skipFlights ? 0 : (routineFlights * routineFlightCost) / 12;

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { formatCurrency } from '../utils/formatters';
+import { getNextStepAfterMatch, hasAnyMatchOpportunity } from '../utils/flow';
 
 function ActionLink({ label, url }) {
   return (
@@ -10,7 +11,27 @@ function ActionLink({ label, url }) {
   );
 }
 
-function MemberMatchBlock({ label, basePay, answer, onAnswer }) {
+function ResponseButtons({ answer, onAnswer }) {
+  return (
+    <div style={{ display: 'flex', gap: 10 }}>
+      {[{ val: 'yes', label: 'Yes' }, { val: 'no', label: 'No' }, { val: 'unsure', label: 'Not sure' }].map(opt => {
+        const active = answer === opt.val;
+        return (
+          <button key={opt.val} onClick={() => onAnswer(opt.val)} style={{
+            flex: 1, height: 48, borderRadius: 12,
+            border: `2px solid ${active ? 'var(--navy)' : '#E0E0E0'}`,
+            background: active ? 'var(--navy)' : '#fff',
+            color: active ? '#fff' : 'var(--navy)',
+            fontFamily: 'DM Sans, sans-serif', fontSize: 15, fontWeight: active ? 600 : 400,
+            cursor: 'pointer', transition: 'all 150ms',
+          }}>{opt.label}</button>
+        );
+      })}
+    </div>
+  );
+}
+
+function MilitaryMatchBlock({ label, basePay, answer, onAnswer }) {
   const matchMonthly = Math.round(basePay * 0.05);
   const matchAnnual = matchMonthly * 12;
 
@@ -29,26 +50,27 @@ function MemberMatchBlock({ label, basePay, answer, onAnswer }) {
         </div>
       </div>
       <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 15, color: 'var(--gray)', margin: '0 0 16px', lineHeight: 1.6 }}>
-        Your employer set aside money each month for you. If you don't meet the match, you're handing it back.
+        Your employer set aside money each month for you. If you don&apos;t meet the match, you&apos;re handing it back.
       </p>
       <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 15, fontWeight: 600, color: 'var(--navy)', margin: '0 0 12px' }}>
         Contributing at least 5% to TSP?
       </p>
-      <div style={{ display: 'flex', gap: 10 }}>
-        {[{ val: 'yes', label: 'Yes' }, { val: 'no', label: 'No' }, { val: 'unsure', label: 'Not sure' }].map(opt => {
-          const active = answer === opt.val;
-          return (
-            <button key={opt.val} onClick={() => onAnswer(opt.val)} style={{
-              flex: 1, height: 48, borderRadius: 12,
-              border: `2px solid ${active ? 'var(--navy)' : '#E0E0E0'}`,
-              background: active ? 'var(--navy)' : '#fff',
-              color: active ? '#fff' : 'var(--navy)',
-              fontFamily: 'DM Sans, sans-serif', fontSize: 15, fontWeight: active ? 600 : 400,
-              cursor: 'pointer', transition: 'all 150ms',
-            }}>{opt.label}</button>
-          );
-        })}
-      </div>
+      <ResponseButtons answer={answer} onAnswer={onAnswer} />
+    </div>
+  );
+}
+
+function CivilianMatchBlock({ label, answer, onAnswer }) {
+  return (
+    <div style={{ marginBottom: 24 }}>
+      {label && <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: 600, color: 'var(--blue)', margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{label}</p>}
+      <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 15, color: 'var(--gray)', margin: '0 0 16px', lineHeight: 1.6 }}>
+        Your employer set aside money each month for you. If you don&apos;t meet the match, you&apos;re handing it back.
+      </p>
+      <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 15, fontWeight: 600, color: 'var(--navy)', margin: '0 0 12px' }}>
+        Are you contributing enough to get the full employer match?
+      </p>
+      <ResponseButtons answer={answer} onAnswer={onAnswer} />
     </div>
   );
 }
@@ -60,21 +82,21 @@ export default function Step2MatchScreen({ userData, updateUserData, onNext, onB
 
   useEffect(() => { const t = setTimeout(() => setMounted(true), 50); return () => clearTimeout(t); }, []);
 
-  const isMilitary = userData.incomeType === 'military';
-  const isDual = userData.isDualMilitary;
-  const isCivilian = userData.incomeType === 'civilian';
-
-  const canContinue = isMilitary
-    ? (m1Answer != null && (!isDual || m2Answer != null))
-    : m1Answer != null;
-
   const showActionM1 = m1Answer === 'no' || m1Answer === 'unsure';
   const showActionM2 = m2Answer === 'no' || m2Answer === 'unsure';
 
+  const members = [
+    userData.incomeType === 'military' ? { id: 'm1', type: 'military', label: userData.householdType === 'partner' ? 'Your TSP Match' : null, answer: m1Answer } : null,
+    userData.incomeType === 'civilian' ? { id: 'm1', type: 'civilian', label: userData.householdType === 'partner' ? 'Your Employer Match' : null, answer: m1Answer } : null,
+    userData.partnerIncomeType === 'military' ? { id: 'm2', type: 'military', label: "Partner's TSP Match", answer: m2Answer } : null,
+    userData.partnerIncomeType === 'civilian' ? { id: 'm2', type: 'civilian', label: "Partner's Employer Match", answer: m2Answer } : null,
+  ].filter(Boolean);
+
+  const canContinue = members.every((member) => member.answer != null);
+
   const handleContinue = () => {
     updateUserData({ capturingMatch: m1Answer, capturingMatchM2: m2Answer });
-    const hasHighDebt = (userData.debts || []).some(d => d.rate > 7);
-    onNext(hasHighDebt ? 'step3Debt' : 'step4EmergencyFund');
+    onNext(getNextStepAfterMatch(userData));
   };
 
   return (
@@ -88,86 +110,93 @@ export default function Step2MatchScreen({ userData, updateUserData, onNext, onB
       </button>
 
       <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 12, fontWeight: 600, color: 'var(--blue)', margin: '24px 0 4px', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Step 2</p>
-      <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 32, fontWeight: 700, color: 'var(--navy)', margin: '0 0 8px', lineHeight: 1.2 }}>
-        {isMilitary ? 'TSP Match' : 'Employer Match'}
-      </h1>
+      <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 32, fontWeight: 700, color: 'var(--navy)', margin: '0 0 8px', lineHeight: 1.2 }}>Match</h1>
       <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 16, color: 'var(--gray)', margin: '0 0 24px', lineHeight: 1.5 }}>
-        {isMilitary ? 'Free money is on the table. Let\'s make sure you\'re picking it up.' : 'If your employer offers a match, this is the highest guaranteed return you\'ll ever get.'}
+        Free money is on the table. Let&apos;s make sure your household is picking it up.
       </p>
 
-      {isMilitary && (
+      {!hasAnyMatchOpportunity(userData) && (
+        <div style={{ background: 'var(--light-blue)', borderRadius: 12, padding: 16, marginBottom: 24 }}>
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: 'var(--navy)', margin: 0, lineHeight: 1.5 }}>
+            No employer or TSP match showed up in your household path, so we&apos;re skipping straight to the next priority.
+          </p>
+        </div>
+      )}
+
+      {userData.incomeType === 'military' && (
         <>
-          <MemberMatchBlock
-            label={isDual ? 'Member 1' : null}
+          <MilitaryMatchBlock
+            label={userData.householdType === 'partner' ? 'Your TSP Match' : null}
             basePay={userData.m1BasePay || 0}
             answer={m1Answer}
             onAnswer={val => { setM1Answer(val); updateUserData({ capturingMatch: val }); }}
           />
-          {(showActionM1) && (
+          {showActionM1 && (
             <div style={{ marginBottom: 16 }}>
               <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: 600, color: 'var(--gray)', margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                {isDual ? 'Member 1 — ' : ''}Set it up in MyPay
+                Set it up in MyPay
               </p>
               <ActionLink label="Log in to MyPay" url="https://mypay.dfas.mil" />
-              <ActionLink label="TSP.gov — contribution guide" url="https://www.tsp.gov" />
+              <ActionLink label="TSP.gov - contribution guide" url="https://www.tsp.gov" />
             </div>
-          )}
-
-          {isDual && (
-            <>
-              <MemberMatchBlock
-                label="Member 2"
-                basePay={userData.m2BasePay || 0}
-                answer={m2Answer}
-                onAnswer={val => { setM2Answer(val); updateUserData({ capturingMatchM2: val }); }}
-              />
-              {showActionM2 && (
-                <div style={{ marginBottom: 16 }}>
-                  <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: 600, color: 'var(--gray)', margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                    Member 2 — Set it up in MyPay
-                  </p>
-                  <ActionLink label="Log in to MyPay" url="https://mypay.dfas.mil" />
-                </div>
-              )}
-            </>
           )}
         </>
       )}
 
-      {isCivilian && (
-        <div>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 15, color: 'var(--gray)', margin: '0 0 16px', lineHeight: 1.6 }}>
-            Your employer set aside money each month for you. If you don't meet the match, you're handing it back.
-          </p>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 15, fontWeight: 600, color: 'var(--navy)', margin: '0 0 12px' }}>
-            Are you contributing enough to get your full employer match?
-          </p>
-          <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
-            {[{ val: 'yes', label: 'Yes' }, { val: 'no', label: 'No' }, { val: 'unsure', label: 'Not sure' }].map(opt => {
-              const active = m1Answer === opt.val;
-              return (
-                <button key={opt.val} onClick={() => { setM1Answer(opt.val); updateUserData({ capturingMatch: opt.val }); }} style={{
-                  flex: 1, height: 48, borderRadius: 12,
-                  border: `2px solid ${active ? 'var(--navy)' : '#E0E0E0'}`,
-                  background: active ? 'var(--navy)' : '#fff',
-                  color: active ? '#fff' : 'var(--navy)',
-                  fontFamily: 'DM Sans, sans-serif', fontSize: 15, fontWeight: active ? 600 : 400,
-                  cursor: 'pointer', transition: 'all 150ms',
-                }}>{opt.label}</button>
-              );
-            })}
-          </div>
+      {userData.incomeType === 'civilian' && (
+        <>
+          <CivilianMatchBlock
+            label={userData.householdType === 'partner' ? 'Your Employer Match' : null}
+            answer={m1Answer}
+            onAnswer={val => { setM1Answer(val); updateUserData({ capturingMatch: val }); }}
+          />
           {showActionM1 && (
-            <div style={{ background: 'var(--light-gold)', borderRadius: 12, padding: 16 }}>
+            <div style={{ background: 'var(--light-gold)', borderRadius: 12, padding: 16, marginBottom: 16 }}>
               <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: 'var(--gray)', margin: 0, lineHeight: 1.5 }}>
-                Log into your HR portal or benefits site and increase your contribution to at least your employer's match threshold. This is the single highest-return move available to you right now.
+                Log into your HR portal or benefits site and increase your contribution until the full employer match is captured.
               </p>
             </div>
           )}
-        </div>
+        </>
       )}
 
-      {canContinue && (
+      {userData.partnerIncomeType === 'military' && (
+        <>
+          <MilitaryMatchBlock
+            label="Partner's TSP Match"
+            basePay={userData.m2BasePay || 0}
+            answer={m2Answer}
+            onAnswer={val => { setM2Answer(val); updateUserData({ capturingMatchM2: val }); }}
+          />
+          {showActionM2 && (
+            <div style={{ marginBottom: 16 }}>
+              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: 600, color: 'var(--gray)', margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                Partner set-up in MyPay
+              </p>
+              <ActionLink label="Log in to MyPay" url="https://mypay.dfas.mil" />
+            </div>
+          )}
+        </>
+      )}
+
+      {userData.partnerIncomeType === 'civilian' && (
+        <>
+          <CivilianMatchBlock
+            label="Partner's Employer Match"
+            answer={m2Answer}
+            onAnswer={val => { setM2Answer(val); updateUserData({ capturingMatchM2: val }); }}
+          />
+          {showActionM2 && (
+            <div style={{ background: 'var(--light-gold)', borderRadius: 12, padding: 16, marginBottom: 16 }}>
+              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: 'var(--gray)', margin: 0, lineHeight: 1.5 }}>
+                Have your partner check their benefits portal or HR system and increase contributions until the full employer match is captured.
+              </p>
+            </div>
+          )}
+        </>
+      )}
+
+      {(canContinue || !hasAnyMatchOpportunity(userData)) && (
         <>
           <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 430, height: 80, background: 'linear-gradient(transparent, #F8F9FA 40%)', pointerEvents: 'none', zIndex: 99 }} />
           <button onClick={handleContinue} style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', width: 'calc(100% - 48px)', maxWidth: 382, height: 56, background: 'var(--navy)', color: '#fff', border: 'none', borderRadius: 16, fontFamily: 'DM Sans, sans-serif', fontSize: 18, fontWeight: 600, cursor: 'pointer', zIndex: 100 }}>

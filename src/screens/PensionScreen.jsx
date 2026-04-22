@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { getBasePay } from '../data/militaryPayTables';
 import { getDefaultRetirementRank } from '../utils/calculations';
+import { getNextIncomeScreen } from '../utils/flow';
 
 const RANKS_FLAT = [
   'E-1','E-2','E-3','E-4','E-5','E-6','E-7','E-8','E-9',
@@ -95,7 +96,7 @@ export default function PensionScreen({ userData, updateUserData, onNext, onBack
   };
 
   const handleContinue = () => {
-    updateUserData({
+    const updates = {
       retirementIntent: intent,
       retirementRank: retRank,
       retirementTIS: Number(retTIS),
@@ -103,8 +104,10 @@ export default function PensionScreen({ userData, updateUserData, onNext, onBack
       annualPension: pension.annual,
       pensionSWRLow: pension.swrLow,
       pensionSWRHigh: pension.swrHigh,
-    });
-    onNext('lesConfirmation');
+    };
+    const nextUserData = { ...userData, ...updates };
+    updateUserData(updates);
+    onNext(getNextIncomeScreen(nextUserData));
   };
 
   const inputStyle = {
@@ -237,7 +240,7 @@ export default function PensionScreen({ userData, updateUserData, onNext, onBack
 
             {/* Row 3: Year-by-year value (unsure and no only) */}
             {(intent === 'unsure' || intent === 'no') && (
-              <div style={{ padding: '16px 0', background: 'var(--light-gold)', margin: '-0px -20px -20px', borderRadius: '0 0 16px 16px', padding: '16px 20px' }}>
+              <div style={{ background: 'var(--light-gold)', margin: '-0px -20px -20px', borderRadius: '0 0 16px 16px', padding: '16px 20px' }}>
                 <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: 'var(--gray)', margin: 0, lineHeight: 1.6 }}>
                   Each year you stay adds{' '}
                   <span style={{ fontWeight: 700, color: 'var(--gold)' }}>{fmt(yearAdd.low)}–{fmt(yearAdd.high)}</span>

@@ -11,17 +11,21 @@ const STAGE_COLORS = {
   built:      { bg: 'var(--light-green)', text: 'var(--green)', accent: 'var(--green)' },
 };
 
-export default function ScoreScreen({ userData, updateUserData, onNext, onBack }) {
+export default function ScoreScreen({ userData, updateUserData, onNext, onBack, onStartFresh }) {
   const [mounted, setMounted] = useState(false);
+  const scaleId = calculateNapkinScale(userData);
 
   useEffect(() => {
-    const scale = calculateNapkinScale(userData);
-    updateUserData({ napkinScale: scale });
     const t = setTimeout(() => setMounted(true), 50);
     return () => clearTimeout(t);
   }, []);
 
-  const scaleId = calculateNapkinScale(userData);
+  useEffect(() => {
+    if (userData.napkinScale !== scaleId) {
+      updateUserData({ napkinScale: scaleId });
+    }
+  }, [scaleId, updateUserData, userData.napkinScale]);
+
   const stage = getStage(scaleId);
   const colors = STAGE_COLORS[scaleId] || STAGE_COLORS.blank;
   const stageIndex = STAGES.findIndex(s => s.id === scaleId);
@@ -39,6 +43,13 @@ export default function ScoreScreen({ userData, updateUserData, onNext, onBack }
     }}>
       <button onClick={onBack} aria-label="Back" style={{ marginTop: 16, width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--navy)' }}>
         <svg width="10" height="18" viewBox="0 0 10 18" fill="none"><path d="M9 1L1 9L9 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      </button>
+
+      <button
+        onClick={onStartFresh}
+        style={{ marginTop: 12, background: 'transparent', border: 'none', padding: 0, color: 'var(--blue)', fontFamily: 'DM Sans, sans-serif', fontSize: 14, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}
+      >
+        Start over
       </button>
 
       {/* Stage card */}

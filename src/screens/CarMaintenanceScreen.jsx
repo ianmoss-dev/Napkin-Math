@@ -106,7 +106,7 @@ function Section({ title, children }) {
 
 const DEFAULT_CAR = { milesPerYear: 12000, mpg: 25, ageKey: '0-5' };
 
-export default function CarMaintenanceScreen({ userData, updateUserData, onNext, onBack }) {
+export default function CarMaintenanceScreen({ updateUserData, onNext, onBack }) {
   const [mounted, setMounted] = useState(false);
   const [numCars, setNumCars] = useState(1);
   const [cars, setCars] = useState([{ ...DEFAULT_CAR }]);

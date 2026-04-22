@@ -4,7 +4,7 @@ import PDFDocument from '../components/PDFDocument';
 import { getStage } from '../utils/napkinScale';
 import { formatCurrency } from '../utils/formatters';
 
-export default function PDFScreen({ userData, onBack, saveCode }) {
+export default function PDFScreen({ userData, onBack, onStartFresh, saveCode }) {
   const [mounted, setMounted] = useState(false);
   const [copied, setCopied] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
@@ -42,6 +42,13 @@ export default function PDFScreen({ userData, onBack, saveCode }) {
     }}>
       <button onClick={onBack} aria-label="Back" style={{ marginTop: 16, width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--navy)' }}>
         <svg width="10" height="18" viewBox="0 0 10 18" fill="none"><path d="M9 1L1 9L9 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      </button>
+
+      <button
+        onClick={onStartFresh}
+        style={{ marginTop: 12, background: 'transparent', border: 'none', padding: 0, color: 'var(--blue)', fontFamily: 'DM Sans, sans-serif', fontSize: 14, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}
+      >
+        Start over
       </button>
 
       <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 32, fontWeight: 700, color: 'var(--navy)', margin: '24px 0 8px' }}>

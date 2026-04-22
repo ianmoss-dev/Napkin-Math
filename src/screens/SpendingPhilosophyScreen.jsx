@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { getNextIncomeScreen } from '../utils/flow';
 
 const CARDS = [
   {
@@ -26,11 +27,9 @@ function SpendingPhilosophyScreen({ userData, updateUserData, onNext, onBack }) 
   }, []);
 
   const handleContinue = () => {
+    const nextUserData = { ...userData, spendingPhilosophy: selected };
     updateUserData({ spendingPhilosophy: selected });
-    const { incomeType } = userData;
-    if (incomeType === 'military') onNext('payReconstruction1');
-    else if (incomeType === 'selfEmployed') onNext('irregularIncome');
-    else onNext('lesConfirmation');
+    onNext(getNextIncomeScreen(nextUserData));
   };
 
   return (

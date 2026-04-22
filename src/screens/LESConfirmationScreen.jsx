@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { toMonthly } from '../utils/calculations';
 import { formatCurrency } from '../utils/formatters';
+import { getNextIncomeScreen } from '../utils/flow';
 
 const FREQ_OPTIONS = [
   { label: 'Weekly',          value: 'weekly' },
@@ -161,8 +162,8 @@ export default function LESConfirmationScreen({ userData, updateUserData, onNext
   const [m1Freq, setM1Freq] = useState('biweekly');
 
   // M2 state
-  const [m2Mid, setM2Mid] = useState('');
-  const [m2End, setM2End] = useState('');
+  const [m2Mid, setM2Mid] = useState(userData.m2MidMonth ? String(userData.m2MidMonth) : '');
+  const [m2End, setM2End] = useState(userData.m2EndOfMonth ? String(userData.m2EndOfMonth) : '');
   const [m2Amount, setM2Amount] = useState('');
   const [m2Freq, setM2Freq] = useState('biweekly');
 
@@ -170,12 +171,14 @@ export default function LESConfirmationScreen({ userData, updateUserData, onNext
 
   function m1Monthly() {
     if (m1Type === 'military') return (Number(m1Mid) || 0) + (Number(m1End) || 0);
+    if (m1Type !== 'civilian') return 0;
     return toMonthly(Number(m1Amount) || 0, m1Freq);
   }
 
   function m2Monthly() {
     if (!isPartner || m2Type === 'none') return 0;
     if (m2Type === 'military') return (Number(m2Mid) || 0) + (Number(m2End) || 0);
+    if (m2Type !== 'civilian') return 0;
     return toMonthly(Number(m2Amount) || 0, m2Freq);
   }
 
@@ -191,23 +194,32 @@ export default function LESConfirmationScreen({ userData, updateUserData, onNext
   function isComplete() {
     const m1ok = m1Type === 'military'
       ? (Number(m1Mid) > 0 || Number(m1End) > 0)
-      : Number(m1Amount) > 0;
+      : m1Type === 'civilian'
+        ? Number(m1Amount) > 0
+        : true;
     if (!isPartner || m2Type === 'none') return m1ok;
     const m2ok = m2Type === 'military'
       ? (Number(m2Mid) > 0 || Number(m2End) > 0)
-      : Number(m2Amount) > 0;
+      : m2Type === 'civilian'
+        ? Number(m2Amount) > 0
+        : true;
     return m1ok && m2ok;
   }
 
   const handleContinue = () => {
-    updateUserData({
+    const updates = {
       m1MidMonth: Number(m1Mid) || 0,
       m1EndOfMonth: Number(m1End) || 0,
       m1TakeHome: m1Monthly(),
+      m2MidMonth: Number(m2Mid) || 0,
+      m2EndOfMonth: Number(m2End) || 0,
+      m2TakeHome: m2Monthly(),
       monthlyTakeHome: totalMonthly,
       additionalIncome: additionalItems,
-    });
-    onNext('budgetHousing');
+    };
+    const nextUserData = { ...userData, ...updates };
+    updateUserData(updates);
+    onNext(getNextIncomeScreen(nextUserData));
   };
 
   return (
@@ -236,13 +248,13 @@ export default function LESConfirmationScreen({ userData, updateUserData, onNext
           midMonth={m1Mid} setMidMonth={setM1Mid}
           endMonth={m1End} setEndMonth={setM1End}
         />
-      ) : (
+      ) : m1Type === 'civilian' ? (
         <CivilianIncomeSection
           label={isPartner ? 'Your Income' : undefined}
           amount={m1Amount} setAmount={setM1Amount}
           frequency={m1Freq} setFrequency={setM1Freq}
         />
-      )}
+      ) : null}
 
       {/* M2 income */}
       {isPartner && m2Type && m2Type !== 'none' && (
@@ -252,13 +264,13 @@ export default function LESConfirmationScreen({ userData, updateUserData, onNext
             midMonth={m2Mid} setMidMonth={setM2Mid}
             endMonth={m2End} setEndMonth={setM2End}
           />
-        ) : (
+        ) : m2Type === 'civilian' ? (
           <CivilianIncomeSection
             label="Partner's Income"
             amount={m2Amount} setAmount={setM2Amount}
             frequency={m2Freq} setFrequency={setM2Freq}
           />
-        )
+        ) : null
       )}
 
       {/* Sanity check */}

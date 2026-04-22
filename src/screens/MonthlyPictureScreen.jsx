@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react';
 import { formatCurrency } from '../utils/formatters';
 
+function Stat({ label, value, color }) {
+  return (
+    <div style={{ textAlign: 'center', padding: '20px 0' }}>
+      <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: 600, color: 'var(--gray)', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{label}</p>
+      <p style={{ fontFamily: 'Playfair Display, serif', fontSize: 40, fontWeight: 700, color: color || 'var(--navy)', margin: '0 0 4px', lineHeight: 1 }}>{formatCurrency(Math.abs(value))}</p>
+      <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: 'var(--gray)', margin: 0 }}>per month</p>
+    </div>
+  );
+}
+
 export default function MonthlyPictureScreen({ userData, onNext, onBack }) {
   const [mounted, setMounted] = useState(false);
 
@@ -23,14 +33,6 @@ export default function MonthlyPictureScreen({ userData, onNext, onBack }) {
   } else {
     framingCopy = "You've got real breathing room. Here's how to make sure it's working as hard as possible.";
   }
-
-  const Stat = ({ label, value, color }) => (
-    <div style={{ textAlign: 'center', padding: '20px 0' }}>
-      <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: 600, color: 'var(--gray)', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{label}</p>
-      <p style={{ fontFamily: 'Playfair Display, serif', fontSize: 40, fontWeight: 700, color: color || 'var(--navy)', margin: '0 0 4px', lineHeight: 1 }}>{formatCurrency(Math.abs(value))}</p>
-      <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: 'var(--gray)', margin: 0 }}>per month</p>
-    </div>
-  );
 
   return (
     <div style={{

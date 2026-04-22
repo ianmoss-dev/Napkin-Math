@@ -50,7 +50,7 @@ const QTY_OPTIONS = [
   { label: '15+', value: 20 },
 ];
 
-export default function GiftsScreen({ userData, updateUserData, onNext, onBack }) {
+export default function GiftsScreen({ updateUserData, onNext, onBack }) {
   const [mounted, setMounted] = useState(false);
   const [bdayQty, setBdayQty] = useState(4);
   const [bdayCost, setBdayCost] = useState(37);

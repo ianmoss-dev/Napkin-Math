@@ -1,16 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { formatCurrency } from '../utils/formatters';
 
 export default function BinSelector({ bins, selectedValue, onSelect }) {
   const [inputVal, setInputVal] = useState(selectedValue != null ? String(selectedValue) : '');
   const [activeBin, setActiveBin] = useState(null);
   const inputRef = useRef(null);
-
-  useEffect(() => {
-    if (selectedValue != null && inputVal === '') {
-      setInputVal(String(selectedValue));
-    }
-  }, []);
 
   const handleInputChange = (e) => {
     const raw = e.target.value.replace(/[^0-9.]/g, '');

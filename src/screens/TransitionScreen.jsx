@@ -15,12 +15,14 @@ function calcTotalExpenses(userData) {
 
 export default function TransitionScreen({ userData, updateUserData, onNext }) {
   const [phase, setPhase] = useState(0); // 0=hidden, 1="Okay.", 2="We've got your numbers.", 3="Let's see what your picture looks like."
+  const total = calcTotalExpenses(userData);
+  const breathing = (userData.monthlyTakeHome || 0) - total;
 
   useEffect(() => {
-    const total = calcTotalExpenses(userData);
-    const breathing = (userData.monthlyTakeHome || 0) - total;
-    updateUserData({ totalMonthlyExpenses: total, breathingRoom: breathing });
-  }, []);
+    if (userData.totalMonthlyExpenses !== total || userData.breathingRoom !== breathing) {
+      updateUserData({ totalMonthlyExpenses: total, breathingRoom: breathing });
+    }
+  }, [breathing, total, updateUserData, userData.breathingRoom, userData.totalMonthlyExpenses]);
 
   useEffect(() => {
     const timers = [
@@ -30,7 +32,7 @@ export default function TransitionScreen({ userData, updateUserData, onNext }) {
       setTimeout(() => onNext('monthlyPicture'), 4200),
     ];
     return () => timers.forEach(clearTimeout);
-  }, []);
+  }, [onNext]);
 
   const lines = [
     { text: 'Okay.', size: 52 },
