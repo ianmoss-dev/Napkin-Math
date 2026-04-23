@@ -1,13 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { generateSaveCode } from './utils/saveCode';
 import ProgressBar from './components/ProgressBar';
+import FlowFeedback from './components/FlowFeedback';
 import WelcomeScreen from './screens/WelcomeScreen';
-import KnowledgeScreen from './screens/KnowledgeScreen';
 import HouseholdScreen from './screens/HouseholdScreen';
 import PartnerIncomeScreen from './screens/PartnerIncomeScreen';
 import IncomeTypeScreen from './screens/IncomeTypeScreen';
-import PrepScreen from './screens/PrepScreen';
-import SpendingPhilosophyScreen from './screens/SpendingPhilosophyScreen';
+import TriageScreen from './screens/TriageScreen';
 import PayReconstructionScreen from './screens/PayReconstructionScreen';
 import PensionScreen from './screens/PensionScreen';
 import LESConfirmationScreen from './screens/LESConfirmationScreen';
@@ -15,19 +14,23 @@ import IrregularIncomeScreen from './screens/IrregularIncomeScreen';
 import HousingScreen from './screens/HousingScreen';
 import UtilitiesScreen from './screens/UtilitiesScreen';
 import GroceriesScreen from './screens/GroceriesScreen';
+import HouseholdEssentialsScreen from './screens/HouseholdEssentialsScreen';
 import DiningOutScreen from './screens/DiningOutScreen';
 import CarPaymentScreen from './screens/CarPaymentScreen';
 import CarMaintenanceScreen from './screens/CarMaintenanceScreen';
 import CarInsuranceScreen from './screens/CarInsuranceScreen';
 import PhoneScreen from './screens/PhoneScreen';
 import InternetScreen from './screens/InternetScreen';
+import HomeMaintenanceScreen from './screens/HomeMaintenanceScreen';
 import HealthInsuranceScreen from './screens/HealthInsuranceScreen';
 import MedicalScreen from './screens/MedicalScreen';
 import SubscriptionsScreen from './screens/SubscriptionsScreen';
 import ChildcareScreen from './screens/ChildcareScreen';
 import DebtScreen from './screens/DebtScreen';
 import ClothingScreen from './screens/ClothingScreen';
+import PersonalCareScreen from './screens/PersonalCareScreen';
 import EntertainmentScreen from './screens/EntertainmentScreen';
+import PetsScreen from './screens/PetsScreen';
 import GivingScreen from './screens/GivingScreen';
 import TransitionScreen from './screens/TransitionScreen';
 import MonthlyPictureScreen from './screens/MonthlyPictureScreen';
@@ -58,15 +61,15 @@ function loadSaved() {
 
 const ALL_SCREENS = [
   'welcome', 'household', 'partnerIncome',
-  'incomeType', 'prep', 'spendingPhilosophy',
+  'incomeType', 'triage',
   'payReconstruction1', 'payReconstruction2', 'pension',
   'lesConfirmation', 'irregularIncome',
-  'budgetHousing', 'budgetUtilities', 'budgetGroceries', 'budgetDining',
+  'budgetHousing', 'budgetUtilities', 'budgetGroceries', 'budgetHouseholdEssentials', 'budgetDining',
   'budgetCarPayment', 'budgetGas', 'budgetCarInsurance',
-  'budgetPhone', 'budgetInternet', 'budgetHealthInsurance', 'budgetMedical',
+  'budgetPhone', 'budgetInternet', 'budgetHomeMaintenance', 'budgetHealthInsurance', 'budgetMedical',
   'budgetSubscriptions', 'budgetChildcare',
-  'budgetDebt', 'budgetClothing', 'budgetEntertainment', 'budgetGiving',
-  'budgetGifts', 'budgetTravel',
+  'budgetDebt', 'budgetClothing', 'budgetPersonalCare', 'budgetEntertainment', 'budgetPets',
+  'budgetTravel', 'budgetGifts', 'budgetGiving',
   'transition', 'monthlyPicture',
   'step1Cushion', 'step2Match', 'step3Debt', 'step4EmergencyFund',
   'step5ModerateDebt', 'step6Retirement', 'step7Goals', 'step8Optimize',
@@ -75,12 +78,11 @@ const ALL_SCREENS = [
 
 const initialUserData = {
   // Intake
-  knowledgeLevel: null,
   householdType: null,
   partnerIncomeType: null,
   incomeType: null,
   isDualMilitary: false,
-  spendingPhilosophy: null,
+  highInterestDebt: null,
 
   // Member 1 Military Pay
   m1Rank: null, m1TIS: null, m1ZIP: null, m1Dependents: false,
@@ -109,11 +111,12 @@ const initialUserData = {
 
   // Budget
   housing: null, utilities: null, groceries: null, diningOut: null,
+  householdEssentials: null,
   carPayment: null, gasAndFuel: null, carInsurance: null, phone: null,
-  internet: null, healthInsurance: null, outOfPocketMedical: null,
-  hasHSA: null, subscriptions: [], childcare: null,
+  internet: null, homeMaintenance: null, healthInsurance: null, outOfPocketMedical: null,
+  hasHSA: null, subscriptions: [], hasKids: null, childcare: null, kidExpenses: null,
   debts: [],
-  clothing: null, entertainment: null, giving: null,
+  clothing: null, personalCare: null, entertainment: null, pets: null, giving: null,
   gifts: null, travel: null,
 
   // Computed
@@ -135,7 +138,7 @@ function getProgressScreens(userData) {
     screens.push('partnerIncome');
   }
 
-  screens.push('incomeType', 'prep', 'spendingPhilosophy');
+  screens.push('incomeType', 'triage');
 
   if (userData.incomeType === 'military') {
     screens.push('payReconstruction1');
@@ -150,18 +153,16 @@ function getProgressScreens(userData) {
   }
 
   screens.push(
-    'budgetHousing', 'budgetUtilities', 'budgetGroceries', 'budgetDining',
+    'budgetHousing', 'budgetUtilities', 'budgetGroceries', 'budgetHouseholdEssentials', 'budgetDining',
     'budgetCarPayment', 'budgetGas', 'budgetCarInsurance', 'budgetPhone',
-    'budgetInternet', 'budgetHealthInsurance', 'budgetMedical', 'budgetSubscriptions'
+    'budgetInternet', 'budgetHomeMaintenance', 'budgetHealthInsurance', 'budgetMedical', 'budgetSubscriptions',
+    'budgetChildcare',
+    'budgetDebt', 'budgetClothing', 'budgetPersonalCare', 'budgetEntertainment',
+    'budgetPets', 'budgetTravel', 'budgetGifts', 'budgetGiving'
   );
 
-  if (userData.householdType === 'partner' || userData.m1Dependents || userData.m2Dependents) {
-    screens.push('budgetChildcare');
-  }
-
   screens.push(
-    'budgetDebt', 'budgetClothing', 'budgetEntertainment', 'budgetGiving',
-    'budgetGifts', 'budgetTravel', 'transition', 'monthlyPicture',
+    'transition', 'monthlyPicture',
     'step1Cushion', 'step2Match', 'step3Debt', 'step4EmergencyFund',
     'step5ModerateDebt', 'step6Retirement', 'step7Goals', 'step8Optimize',
     'scoreScreen', 'pdfScreen', 'retirementCalc'
@@ -281,18 +282,17 @@ function App() {
       : Math.round(((progressIndex + 1) / progressScreens.length) * 100);
 
   const showProgress = currentScreen !== 'welcome';
+  const showFeedback = showProgress && !EXEMPT_SCREENS.has(currentScreen);
   const saveCode = generateSaveCode(userData);
   const props = { userData, updateUserData, onNext: navigate, onBack: goBack, onStartFresh: startFresh, saveCode };
 
   const renderScreen = () => {
     switch (currentScreen) {
       case 'welcome':    return <WelcomeScreen {...props} onRestoreCode={restoreCode} />;
-      case 'knowledge':       return <KnowledgeScreen {...props} />;
       case 'household':      return <HouseholdScreen {...props} />;
       case 'partnerIncome':  return <PartnerIncomeScreen {...props} />;
       case 'incomeType':     return <IncomeTypeScreen {...props} />;
-      case 'prep':                 return <PrepScreen {...props} />;
-      case 'spendingPhilosophy':   return <SpendingPhilosophyScreen {...props} />;
+      case 'triage':         return <TriageScreen {...props} />;
       case 'payReconstruction1':   return <PayReconstructionScreen {...props} memberNumber={1} />;
       case 'payReconstruction2':   return <PayReconstructionScreen {...props} memberNumber={2} />;
       case 'pension':              return <PensionScreen {...props} />;
@@ -301,19 +301,23 @@ function App() {
       case 'budgetHousing':        return <HousingScreen {...props} />;
       case 'budgetUtilities':      return <UtilitiesScreen {...props} />;
       case 'budgetGroceries':      return <GroceriesScreen {...props} />;
+      case 'budgetHouseholdEssentials': return <HouseholdEssentialsScreen {...props} />;
       case 'budgetDining':         return <DiningOutScreen {...props} />;
       case 'budgetCarPayment':     return <CarPaymentScreen {...props} />;
       case 'budgetGas':            return <CarMaintenanceScreen {...props} />;
       case 'budgetCarInsurance':   return <CarInsuranceScreen {...props} />;
       case 'budgetPhone':          return <PhoneScreen {...props} />;
       case 'budgetInternet':       return <InternetScreen {...props} />;
+      case 'budgetHomeMaintenance': return <HomeMaintenanceScreen {...props} />;
       case 'budgetHealthInsurance': return <HealthInsuranceScreen {...props} />;
       case 'budgetMedical':        return <MedicalScreen {...props} />;
       case 'budgetSubscriptions':  return <SubscriptionsScreen {...props} />;
       case 'budgetChildcare':      return <ChildcareScreen {...props} />;
       case 'budgetDebt':           return <DebtScreen {...props} />;
       case 'budgetClothing':       return <ClothingScreen {...props} />;
+      case 'budgetPersonalCare':   return <PersonalCareScreen {...props} />;
       case 'budgetEntertainment':  return <EntertainmentScreen {...props} />;
+      case 'budgetPets':           return <PetsScreen {...props} />;
       case 'budgetGiving':         return <GivingScreen {...props} />;
       case 'budgetGifts':          return <GiftsScreen {...props} />;
       case 'budgetTravel':         return <TravelScreen {...props} />;
@@ -342,6 +346,7 @@ function App() {
   return (
     <>
       {showProgress && <ProgressBar pct={progressPct} />}
+      {showFeedback && <FlowFeedback currentScreen={currentScreen} pct={progressPct} />}
       {renderScreen()}
       {showTimerOverlay && (
         <div style={{

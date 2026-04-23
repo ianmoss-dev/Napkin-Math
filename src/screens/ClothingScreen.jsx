@@ -6,14 +6,14 @@ const CAP = 500;
 export default function ClothingScreen({ userData, updateUserData, onNext, onBack }) {
   return (
     <BudgetScreen
-      heading="Clothing & personal care"
-      subtext="Clothes, shoes, haircuts, toiletries, cosmetics — bundled."
+      heading="Clothing"
+      subtext="Clothes, shoes, uniforms, seasonal basics, and replacements."
       percentageBands={BANDS}
       binCap={CAP}
       fieldName="clothing"
       userData={userData}
       updateUserData={updateUserData}
-      onNext={() => onNext('budgetEntertainment')}
+      onNext={() => onNext('budgetPersonalCare')}
       onBack={onBack}
     />
   );

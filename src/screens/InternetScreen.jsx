@@ -15,7 +15,7 @@ export default function InternetScreen({ userData, updateUserData, onNext, onBac
       fieldName="internet"
       userData={userData}
       updateUserData={updateUserData}
-      onNext={() => onNext('budgetHealthInsurance')}
+      onNext={() => onNext('budgetHomeMaintenance')}
       onBack={onBack}
     />
   );

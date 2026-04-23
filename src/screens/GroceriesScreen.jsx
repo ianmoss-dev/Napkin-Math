@@ -13,7 +13,7 @@ export default function GroceriesScreen({ userData, updateUserData, onNext, onBa
       groceryMode
       userData={userData}
       updateUserData={updateUserData}
-      onNext={() => onNext('budgetDining')}
+      onNext={() => onNext('budgetHouseholdEssentials')}
       onBack={onBack}
     />
   );

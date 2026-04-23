@@ -67,7 +67,7 @@ export default function GiftsScreen({ updateUserData, onNext, onBack }) {
 
   const handleContinue = () => {
     updateUserData({ gifts: total });
-    onNext('budgetTravel');
+    onNext('budgetGiving');
   };
 
   return (

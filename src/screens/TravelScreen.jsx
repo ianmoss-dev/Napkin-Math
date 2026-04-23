@@ -108,7 +108,7 @@ export default function TravelScreen({ updateUserData, onNext, onBack }) {
 
   const handleContinue = () => {
     updateUserData({ travel: total });
-    onNext('transition');
+    onNext('budgetGifts');
   };
 
   const numInput = (val, setter, label, unit = '') => (

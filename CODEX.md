@@ -23,6 +23,20 @@ This file tracks implementation changes, UX findings, and product-direction idea
 - Replaced branded HYSA links with broader resources in:
   - `src/screens/Step1CushionScreen.jsx`
   - `src/screens/Step4EmergencyFundScreen.jsx`
+- Added a triage-first intake step for:
+  - emergency fund
+  - employer / TSP match
+  - high-interest debt
+- Removed `prep` and `spendingPhilosophy` from the required opening flow.
+- Added floating in-app progress feedback during triage, income collection, and budgeting.
+- Updated the post-budget handoff so users land on their first priority step instead of always starting at `step1Cushion`.
+- Expanded the budget flow with visible buckets for:
+  - household essentials
+  - home maintenance
+  - personal care
+  - pets
+  - kid expenses behind a `hasKids` gate
+- Reordered the back half of the budget flow so `travel` comes after `entertainment`, and `giving` comes last.
 - Verified current repo state with:
   - `npm run lint`
   - `npm run build`
@@ -55,8 +69,7 @@ Preferred direction:
 - Start with triage instead of self-reported knowledge level.
 - Use a short flowchart to determine where the user actually is.
 - Then route into the most relevant solution path.
-- Important current constraint:
-  - the existing `monthlyPicture -> step1..step8` sequence is budget-driven today, so moving triage earlier is an architectural refactor rather than a simple reorder.
+- This is now the active opening direction in the app.
 
 Example early triage questions:
 

@@ -7,13 +7,13 @@ export default function EntertainmentScreen({ userData, updateUserData, onNext, 
   return (
     <BudgetScreen
       heading="Entertainment & hobbies"
-      subtext="Events, hobbies, sports, concerts, pets."
+      subtext="Events, hobbies, sports, side outings, and the fun-money bucket."
       percentageBands={BANDS}
       binCap={CAP}
       fieldName="entertainment"
       userData={userData}
       updateUserData={updateUserData}
-      onNext={() => onNext('budgetGiving')}
+      onNext={() => onNext('budgetPets')}
       onBack={onBack}
     />
   );

@@ -4,20 +4,58 @@ export function hasHighInterestDebt(userData) {
   return (userData.debts || []).some((debt) => debt.rate > 7);
 }
 
+export function hasHighInterestDebtSignal(userData) {
+  return hasHighInterestDebt(userData) || userData.highInterestDebt === 'yes' || userData.highInterestDebt === 'unsure';
+}
+
 export function hasAnyMatchOpportunity(userData) {
   return REGULAR_TYPES.has(userData.incomeType) || REGULAR_TYPES.has(userData.partnerIncomeType);
 }
 
-export function getNextStepAfterCushion(userData) {
-  if (hasAnyMatchOpportunity(userData)) {
+export function isFullMatchCaptured(userData) {
+  if (!hasAnyMatchOpportunity(userData)) {
+    return true;
+  }
+
+  const checks = [];
+
+  if (REGULAR_TYPES.has(userData.incomeType)) {
+    checks.push(userData.capturingMatch === 'yes');
+  }
+
+  if (REGULAR_TYPES.has(userData.partnerIncomeType)) {
+    checks.push(userData.capturingMatchM2 === 'yes');
+  }
+
+  return checks.every(Boolean);
+}
+
+export function getPriorityPlanScreen(userData) {
+  if (userData.hasCushion !== 'yes') {
+    return 'step1Cushion';
+  }
+
+  if (!isFullMatchCaptured(userData)) {
     return 'step2Match';
   }
 
-  return hasHighInterestDebt(userData) ? 'step3Debt' : 'step4EmergencyFund';
+  if (hasHighInterestDebtSignal(userData)) {
+    return 'step3Debt';
+  }
+
+  return 'step4EmergencyFund';
+}
+
+export function getNextStepAfterCushion(userData) {
+  if (!isFullMatchCaptured(userData)) {
+    return 'step2Match';
+  }
+
+  return hasHighInterestDebtSignal(userData) ? 'step3Debt' : 'step4EmergencyFund';
 }
 
 export function getNextStepAfterMatch(userData) {
-  return hasHighInterestDebt(userData) ? 'step3Debt' : 'step4EmergencyFund';
+  return hasHighInterestDebtSignal(userData) ? 'step3Debt' : 'step4EmergencyFund';
 }
 
 function needsPrimaryMilitaryPay(userData) {

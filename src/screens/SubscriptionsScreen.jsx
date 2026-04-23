@@ -49,8 +49,7 @@ export default function SubscriptionsScreen({ userData, updateUserData, onNext, 
 
   const handleContinue = () => {
     updateUserData({ subscriptions: buildSubscriptionsList() });
-    const next = (userData.m1Dependents || userData.m2Dependents) ? 'budgetChildcare' : 'budgetDebt';
-    onNext(next);
+    onNext('budgetChildcare');
   };
 
   return (

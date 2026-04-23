@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 
 function calcTotalExpenses(userData) {
   const fields = [
-    'housing', 'utilities', 'groceries', 'diningOut',
+    'housing', 'utilities', 'groceries', 'householdEssentials', 'diningOut',
     'carPayment', 'gasAndFuel', 'carInsurance',
-    'phone', 'internet', 'healthInsurance', 'outOfPocketMedical',
-    'childcare', 'clothing', 'entertainment', 'giving', 'gifts', 'travel',
+    'phone', 'internet', 'homeMaintenance', 'healthInsurance', 'outOfPocketMedical',
+    'childcare', 'kidExpenses', 'clothing', 'personalCare', 'entertainment', 'pets', 'giving', 'gifts', 'travel',
   ];
   const fixed = fields.reduce((sum, f) => sum + (userData[f] || 0), 0);
   const subTotal = (userData.subscriptions || []).reduce((sum, s) => sum + (s.price || 0), 0);
