@@ -60,8 +60,8 @@ function loadSaved() {
 }
 
 const ALL_SCREENS = [
-  'welcome', 'household', 'partnerIncome',
-  'incomeType', 'triage',
+  'welcome', 'triage', 'household', 'partnerIncome',
+  'incomeType',
   'payReconstruction1', 'payReconstruction2', 'pension',
   'lesConfirmation', 'irregularIncome',
   'budgetHousing', 'budgetUtilities', 'budgetGroceries', 'budgetHouseholdEssentials', 'budgetDining',
@@ -79,6 +79,7 @@ const ALL_SCREENS = [
 const initialUserData = {
   // Intake
   householdType: null,
+  triageGate: null,
   partnerIncomeType: null,
   incomeType: null,
   isDualMilitary: false,
@@ -132,13 +133,13 @@ const EXEMPT_SCREENS = new Set(['welcome', 'scoreScreen', 'pdfScreen']);
 const SKIP_BACK_SCREENS = new Set(['transition']);
 
 function getProgressScreens(userData) {
-  const screens = ['household'];
+  const screens = ['triage', 'household'];
 
   if (userData.householdType === 'partner') {
     screens.push('partnerIncome');
   }
 
-  screens.push('incomeType', 'triage');
+  screens.push('incomeType');
 
   if (userData.incomeType === 'military') {
     screens.push('payReconstruction1');
@@ -239,11 +240,11 @@ function App() {
       // Ignore storage failures and continue with a fresh in-memory session.
     }
     const nextUserData = { ...initialUserData };
-    const newHistory = ['welcome', 'household'];
+    const newHistory = ['welcome', 'triage'];
     clearTimer();
     setShowTimerOverlay(false);
     setUserData(nextUserData);
-    applyNavigation('household', newHistory, nextUserData);
+    applyNavigation('triage', newHistory, nextUserData);
   };
 
   const restoreCode = (decoded) => {
@@ -254,7 +255,7 @@ function App() {
     }
     const next = { ...initialUserData, ...decoded };
     setUserData(next);
-    const screen = decoded.napkinScale ? 'scoreScreen' : decoded.monthlyTakeHome ? 'monthlyPicture' : 'household';
+    const screen = decoded.napkinScale ? 'scoreScreen' : decoded.monthlyTakeHome ? 'monthlyPicture' : 'triage';
     const newHistory = ['welcome', screen];
     applyNavigation(screen, newHistory, next);
   };

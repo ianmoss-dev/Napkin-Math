@@ -1,4 +1,12 @@
 const REGULAR_TYPES = new Set(['civilian', 'military']);
+const TRIAGE_GATE_TO_SCREEN = {
+  emergencyFund: 'step4EmergencyFund',
+  employerMatch: 'step2Match',
+  highInterestDebt: 'step3Debt',
+  saveForRetirement: 'step6Retirement',
+  saveMoreRetirement: 'step8Optimize',
+  otherGoalsAdvanced: 'step7Goals',
+};
 
 export function hasHighInterestDebt(userData) {
   return (userData.debts || []).some((debt) => debt.rate > 7);
@@ -31,6 +39,10 @@ export function isFullMatchCaptured(userData) {
 }
 
 export function getPriorityPlanScreen(userData) {
+  if (userData.triageGate && TRIAGE_GATE_TO_SCREEN[userData.triageGate]) {
+    return TRIAGE_GATE_TO_SCREEN[userData.triageGate];
+  }
+
   if (userData.hasCushion !== 'yes') {
     return 'step1Cushion';
   }
@@ -115,4 +127,8 @@ export function getNextIncomeScreen(userData) {
   }
 
   return 'budgetHousing';
+}
+
+export function getTriagePlanScreen(triageGate) {
+  return TRIAGE_GATE_TO_SCREEN[triageGate] || 'step4EmergencyFund';
 }

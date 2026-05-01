@@ -33,10 +33,22 @@ function IncomeTypeScreen({ userData, updateUserData, onNext, onBack }) {
     return () => clearTimeout(t);
   }, []);
 
+  const getNextScreen = () => {
+    if (selected === 'military') {
+      return 'payReconstruction1';
+    }
+
+    if (selected === 'civilian') {
+      return 'lesConfirmation';
+    }
+
+    return 'irregularIncome';
+  };
+
   const handleContinue = () => {
     const isDualMilitary = userData.partnerIncomeType === 'military' && selected === 'military';
     updateUserData({ incomeType: selected, isDualMilitary });
-    onNext('triage');
+    onNext(getNextScreen());
   };
 
   return (
@@ -78,7 +90,7 @@ function IncomeTypeScreen({ userData, updateUserData, onNext, onBack }) {
         margin: '24px 0 0',
         lineHeight: 1.2,
       }}>
-        {isSolo ? 'What best describes your situation?' : 'What about you?'}
+        {isSolo ? 'How does your income work?' : 'How does your income work?'}
       </h1>
       <p style={{
         fontFamily: 'DM Sans, sans-serif',
@@ -87,7 +99,7 @@ function IncomeTypeScreen({ userData, updateUserData, onNext, onBack }) {
         margin: '8px 0 24px',
         lineHeight: 1.5,
       }}>
-        {isSolo ? 'This shapes how we look at your income.' : "Now let's look at your situation."}
+        {isSolo ? "We'll use this to build the right income setup." : "We'll use this to build the right income setup."}
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

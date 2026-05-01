@@ -66,7 +66,7 @@ function HouseholdScreen({ userData, updateUserData, onNext, onBack }) {
         margin: '24px 0 0',
         lineHeight: 1.2,
       }}>
-        Who is this plan for?
+        Who are we building this for?
       </h1>
       <p style={{
         fontFamily: 'DM Sans, sans-serif',
@@ -75,7 +75,7 @@ function HouseholdScreen({ userData, updateUserData, onNext, onBack }) {
         margin: '8px 0 24px',
         lineHeight: 1.5,
       }}>
-        This helps us make sure we capture everything.
+        Now let&apos;s define the household before we map income and spending.
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

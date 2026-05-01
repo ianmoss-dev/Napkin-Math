@@ -30,6 +30,7 @@ export function generateSaveCode(userData) {
   const slim = {
     v: 1,
     ht: userData.householdType,
+    tg: userData.triageGate,
     pit: userData.partnerIncomeType,
     it: userData.incomeType,
     idm: userData.isDualMilitary,
@@ -74,6 +75,7 @@ export function decodeSaveCode(raw) {
 
     return {
       householdType: slim.ht ?? null,
+      triageGate: slim.tg ?? null,
       partnerIncomeType: slim.pit ?? null,
       incomeType: slim.it ?? null,
       isDualMilitary: slim.idm ?? false,

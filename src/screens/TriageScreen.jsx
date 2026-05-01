@@ -1,93 +1,50 @@
 import { useEffect, useState } from 'react';
-import { getNextIncomeScreen, hasAnyMatchOpportunity } from '../utils/flow';
 
-const FUND_OPTIONS = [
-  { value: 'yes', label: 'Yes', body: 'I have at least $1,000 that I do not touch.' },
-  { value: 'kindof', label: 'Sort of', body: 'I have some savings, but I dip into it.' },
-  { value: 'no', label: 'No', body: 'I do not have a real emergency cushion yet.' },
+const GATE_OPTIONS = [
+  {
+    value: 'emergencyFund',
+    label: 'Emergency Fund',
+    body: 'I need to build or finish my emergency fund before I worry about anything more advanced.',
+  },
+  {
+    value: 'employerMatch',
+    label: 'Employer Match',
+    body: 'I have some cushion, and the next thing I need to lock in is my employer or TSP match.',
+  },
+  {
+    value: 'highInterestDebt',
+    label: 'High-Interest Debt',
+    body: 'My next priority is getting expensive debt under control.',
+  },
+  {
+    value: 'saveForRetirement',
+    label: 'Save For Retirement',
+    body: 'My foundation is decent, and I need a real retirement savings plan.',
+  },
+  {
+    value: 'saveMoreRetirement',
+    label: 'Save More For Retirement',
+    body: 'I am already saving for retirement and want to push that further.',
+  },
+  {
+    value: 'otherGoalsAdvanced',
+    label: 'Other Goals / Advanced',
+    body: 'Retirement is moving, and I want to focus on other goals or more advanced planning.',
+  },
 ];
-
-const MATCH_OPTIONS = [
-  { value: 'yes', label: 'Yes', body: 'I am already getting the full match.' },
-  { value: 'no', label: 'No', body: 'I know there is a match and I am not getting all of it.' },
-  { value: 'unsure', label: 'Not sure', body: 'I need to check my TSP or benefits portal.' },
-];
-
-const DEBT_OPTIONS = [
-  { value: 'yes', label: 'Yes', body: 'I have credit-card or other debt above about 7%.' },
-  { value: 'no', label: 'No', body: 'Nothing meaningfully high-interest right now.' },
-  { value: 'unsure', label: 'Not sure', body: 'I need to check rates, but I know there is debt.' },
-];
-
-function OptionRow({ options, selected, onSelect }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      {options.map((option) => {
-        const active = selected === option.value;
-        return (
-          <button
-            key={option.value}
-            onClick={() => onSelect(option.value)}
-            style={{
-              textAlign: 'left',
-              padding: '16px 18px',
-              borderRadius: 16,
-              border: `2px solid ${active ? 'var(--navy)' : 'transparent'}`,
-              background: active ? 'var(--light-blue)' : '#fff',
-              boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-              cursor: 'pointer',
-              transition: 'all 150ms',
-            }}
-          >
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 16, fontWeight: 600, color: 'var(--navy)', margin: '0 0 4px' }}>
-              {option.label}
-            </p>
-            <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: 'var(--gray)', margin: 0, lineHeight: 1.45 }}>
-              {option.body}
-            </p>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
 
 export default function TriageScreen({ userData, updateUserData, onNext, onBack }) {
   const [mounted, setMounted] = useState(false);
-  const [fund, setFund] = useState(userData.hasCushion ?? null);
-  const [match, setMatch] = useState(userData.capturingMatch ?? null);
-  const [partnerMatch, setPartnerMatch] = useState(userData.capturingMatchM2 ?? null);
-  const [debt, setDebt] = useState(userData.highInterestDebt ?? null);
-
-  const showPrimaryMatch = userData.incomeType === 'civilian' || userData.incomeType === 'military';
-  const showPartnerMatch = userData.partnerIncomeType === 'civilian' || userData.partnerIncomeType === 'military';
-  const showAnyMatch = hasAnyMatchOpportunity(userData);
+  const [selected, setSelected] = useState(userData.triageGate ?? null);
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 50);
     return () => clearTimeout(t);
   }, []);
 
-  const canContinue = fund
-    && debt
-    && (!showPrimaryMatch || match)
-    && (!showPartnerMatch || partnerMatch);
-
   const handleContinue = () => {
-    const nextUserData = {
-      ...userData,
-      hasCushion: fund,
-      capturingMatch: showPrimaryMatch ? match : 'notApplicable',
-      capturingMatchM2: showPartnerMatch ? partnerMatch : 'notApplicable',
-      highInterestDebt: debt,
-    };
-    updateUserData({
-      hasCushion: fund,
-      capturingMatch: showPrimaryMatch ? match : 'notApplicable',
-      capturingMatchM2: showPartnerMatch ? partnerMatch : 'notApplicable',
-      highInterestDebt: debt,
-    });
-    onNext(getNextIncomeScreen(nextUserData));
+    updateUserData({ triageGate: selected });
+    onNext('household');
   };
 
   return (
@@ -122,60 +79,51 @@ export default function TriageScreen({ userData, updateUserData, onNext, onBack 
       </button>
 
       <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 12, fontWeight: 600, color: 'var(--blue)', margin: '24px 0 4px', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
-        Triage
+        Starting Point
       </p>
       <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 32, fontWeight: 700, color: 'var(--navy)', margin: '0 0 8px', lineHeight: 1.2 }}>
-        Let&apos;s figure out what matters first.
+        Where are you right now?
       </h1>
       <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 16, color: 'var(--gray)', margin: '0 0 24px', lineHeight: 1.5 }}>
-        Three quick answers, then we&apos;ll build the numbers around your real priorities.
+        Pick the gate that best matches your current priority. Then we&apos;ll build the income and budget picture around it.
       </p>
 
-      <div style={{ marginBottom: 22 }}>
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, fontWeight: 600, color: 'var(--navy)', margin: '0 0 10px' }}>
-          Do you have an emergency fund?
-        </p>
-        <OptionRow options={FUND_OPTIONS} selected={fund} onSelect={setFund} />
-      </div>
-
-      {showAnyMatch && (
-        <div style={{ marginBottom: 22 }}>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, fontWeight: 600, color: 'var(--navy)', margin: '0 0 10px' }}>
-            Match check
-          </p>
-          {showPrimaryMatch && (
-            <div style={{ marginBottom: showPartnerMatch ? 14 : 0 }}>
-              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: 600, color: 'var(--blue)', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                Your match
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {GATE_OPTIONS.map((option) => {
+          const active = selected === option.value;
+          return (
+            <button
+              key={option.value}
+              onClick={() => setSelected(option.value)}
+              style={{
+                textAlign: 'left',
+                padding: '16px 18px',
+                borderRadius: 16,
+                border: `2px solid ${active ? 'var(--navy)' : 'transparent'}`,
+                background: active ? 'var(--light-blue)' : '#fff',
+                boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+                cursor: 'pointer',
+                transition: 'all 150ms',
+              }}
+            >
+              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 16, fontWeight: 600, color: 'var(--navy)', margin: '0 0 4px' }}>
+                {option.label}
               </p>
-              <OptionRow options={MATCH_OPTIONS} selected={match} onSelect={setMatch} />
-            </div>
-          )}
-          {showPartnerMatch && (
-            <div>
-              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: 600, color: 'var(--blue)', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                Partner&apos;s match
+              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: 'var(--gray)', margin: 0, lineHeight: 1.45 }}>
+                {option.body}
               </p>
-              <OptionRow options={MATCH_OPTIONS} selected={partnerMatch} onSelect={setPartnerMatch} />
-            </div>
-          )}
-        </div>
-      )}
-
-      <div style={{ marginBottom: 12 }}>
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, fontWeight: 600, color: 'var(--navy)', margin: '0 0 10px' }}>
-          Do you have high-interest debt?
-        </p>
-        <OptionRow options={DEBT_OPTIONS} selected={debt} onSelect={setDebt} />
+            </button>
+          );
+        })}
       </div>
 
       <div style={{ background: 'var(--light-gold)', borderRadius: 12, padding: 14, marginTop: 18 }}>
         <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: 'var(--gray)', margin: 0, lineHeight: 1.5 }}>
-          Next we&apos;ll map income and spending so your plan is built on real numbers, not guesses.
+          Next we&apos;ll establish household income, then walk through the budget so the recommendations match real life.
         </p>
       </div>
 
-      {canContinue && (
+      {selected && (
         <>
           <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 430, height: 80, background: 'linear-gradient(transparent, #F8F9FA 40%)', pointerEvents: 'none', zIndex: 99 }} />
           <button
