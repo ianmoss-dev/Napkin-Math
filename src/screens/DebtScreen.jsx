@@ -147,7 +147,31 @@ function AddDebtForm({ onAdd, onCancel }) {
 
 export default function DebtScreen({ userData, updateUserData, onNext, onBack }) {
   const [mounted, setMounted] = useState(false);
-  const [debts, setDebts] = useState(userData.debts || []);
+  const [debts, setDebts] = useState(() => {
+    if (userData.debts?.length) {
+      return userData.debts;
+    }
+
+    if (userData.checklistDebtType && userData.checklistDebtType !== 'none' && (userData.checklistDebtBalance || 0) > 0) {
+      return [{
+        id: 'checklist-debt',
+        type: userData.checklistDebtType === 'creditCard'
+          ? 'Credit card'
+          : userData.checklistDebtType === 'personalLoan'
+            ? 'Personal loan'
+            : userData.checklistDebtType === 'autoLoan'
+              ? 'Car loan'
+              : 'Other',
+        balance: userData.checklistDebtBalance || 0,
+        rate: userData.checklistDebtRate || 0,
+        rateUnknown: userData.checklistDebtRateEstimated || false,
+        minimum: Math.max(25, Math.round((userData.checklistDebtBalance || 0) * 0.02)),
+        minUnknown: true,
+      }];
+    }
+
+    return [];
+  });
   const [adding, setAdding] = useState(false);
   const [noDebt, setNoDebt] = useState(userData.debts?.length === 0 && userData.debts !== null ? false : null);
 
@@ -192,6 +216,14 @@ export default function DebtScreen({ userData, updateUserData, onNext, onBack })
       <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 16, color: 'var(--gray)', margin: '8px 0 24px', lineHeight: 1.5 }}>
         Enter each debt separately so the plan uses real balances and rates.
       </p>
+
+      {userData.checklistDebtType && userData.checklistDebtType !== 'none' && debts.length > 0 && (
+        <div style={{ background: 'var(--light-blue)', borderRadius: 12, padding: 14, marginBottom: 16 }}>
+          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: 'var(--navy)', margin: 0, lineHeight: 1.5 }}>
+            We carried over the debt you entered in the checklist. Update it here if needed.
+          </p>
+        </div>
+      )}
 
       {debts.map((debt) => (
         <DebtCard key={debt.id} debt={debt} onDelete={() => removeDebt(debt.id)} />

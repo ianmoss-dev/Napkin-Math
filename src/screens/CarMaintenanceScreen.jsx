@@ -151,22 +151,22 @@ export default function CarMaintenanceScreen({ updateUserData, onNext, onBack })
     setCars(prev => prev.map((c, idx) => idx === i ? { ...c, [field]: val } : c));
   };
 
-  const { fuelMonthly, oilMonthly, tireMonthly, otherMonthly, total } = useMemo(() => {
-    let fuel = 0, oil = 0, tire = 0, other = 0;
+  const { fuelMonthly, oilMonthly, tireMonthly, repairsMonthly, total } = useMemo(() => {
+    let fuel = 0, oil = 0, tire = 0, repairs = 0;
     for (const car of cars) {
       const mi = car.milesPerYear || 0;
       const mpg = car.mpg || 1;
       fuel += (mi / mpg * gasPrice) / 12;
       oil += (oilCost / oilInterval) * mi / 12;
       tire += (tireCost / tireInterval) * mi / 12;
-      other += AGE_COSTS[car.ageKey] || 0;
+      repairs += AGE_COSTS[car.ageKey] || 0;
     }
     return {
       fuelMonthly: Math.round(fuel),
       oilMonthly: Math.round(oil),
       tireMonthly: Math.round(tire),
-      otherMonthly: Math.round(other),
-      total: Math.round(fuel + oil + tire + other),
+      repairsMonthly: Math.round(repairs),
+      total: Math.round(fuel + oil + tire + repairs),
     };
   }, [cars, gasPrice, oilInterval, oilCost, tireInterval, tireCost]);
 
@@ -207,7 +207,7 @@ export default function CarMaintenanceScreen({ updateUserData, onNext, onBack })
             { label: 'Fuel', v: fuelMonthly },
             { label: 'Oil', v: oilMonthly },
             { label: 'Tires', v: tireMonthly },
-            { label: 'Other', v: otherMonthly },
+            { label: 'Repairs', v: repairsMonthly },
           ].map(({ label, v }) => (
             <div key={label} style={{ flex: 1, background: '#fff', borderRadius: 12, padding: '10px 12px', textAlign: 'center', boxShadow: '0 1px 6px rgba(0,0,0,0.05)' }}>
               <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 10, color: '#BDBDBD', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</p>
@@ -251,7 +251,7 @@ export default function CarMaintenanceScreen({ updateUserData, onNext, onBack })
             onChange={v => updateCar(i, 'ageKey', v)}
           />
           <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 12, color: '#BDBDBD', margin: '8px 0 0', fontStyle: 'italic' }}>
-            Used to estimate repairs &amp; brakes: {formatCurrency(AGE_COSTS[car.ageKey])}/mo
+            Repairs estimate: {formatCurrency(AGE_COSTS[car.ageKey])}/mo and {formatCurrency(AGE_COSTS[car.ageKey] * 12)}/yr
           </p>
         </Section>
       ))}
