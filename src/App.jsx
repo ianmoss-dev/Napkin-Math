@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { generateSaveCode } from './utils/saveCode';
 import ProgressBar from './components/ProgressBar';
 import WelcomeScreen from './screens/WelcomeScreen';
 import ChecklistScreen from './screens/ChecklistScreen';
@@ -275,28 +274,6 @@ function App() {
     applyNavigation('checklist', nextHistory, nextUserData);
   };
 
-  const resumeSaved = () => {
-    const savedState = loadSaved();
-    if (!savedState) {
-      startFresh();
-      return;
-    }
-
-    setUserData({ ...initialUserData, ...(savedState.userData || {}) });
-    applyNavigation(savedState.currentScreen, savedState.history || ['welcome', savedState.currentScreen], {
-      ...initialUserData,
-      ...(savedState.userData || {}),
-    });
-  };
-
-  const restoreCode = (decoded) => {
-    const nextUserData = { ...initialUserData, ...decoded };
-    const screen = decoded.monthlyTakeHome ? 'monthlyPicture' : 'checklist';
-    const nextHistory = ['welcome', screen];
-    setUserData(nextUserData);
-    applyNavigation(screen, nextHistory, nextUserData);
-  };
-
   const flowScreens = getFlowScreens(userData);
   const progressIndex = flowScreens.indexOf(currentScreen);
   const progressPct = currentScreen === 'welcome' || progressIndex === -1
@@ -304,20 +281,18 @@ function App() {
     : Math.round(((progressIndex + 1) / flowScreens.length) * 100);
 
   const showProgress = currentScreen !== 'welcome';
-  const saveCode = generateSaveCode(userData);
   const props = {
     userData,
     updateUserData,
     onNext: navigate,
     onBack: goBack,
     onStartFresh: startFresh,
-    saveCode,
   };
 
   const renderScreen = () => {
     switch (currentScreen) {
       case 'welcome':
-        return <WelcomeScreen {...props} onRestoreCode={restoreCode} onResumeSaved={resumeSaved} />;
+        return <WelcomeScreen {...props} />;
       case 'checklist':
         return <ChecklistScreen {...props} />;
       case 'household':
