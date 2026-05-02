@@ -26,29 +26,15 @@ function IncomeTypeScreen({ userData, updateUserData, onNext, onBack }) {
   const [selected, setSelected] = useState(userData.incomeType ?? null);
   const [openInfo, setOpenInfo] = useState(null);
 
-  const isSolo = userData.householdType === 'solo';
-
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 50);
     return () => clearTimeout(t);
   }, []);
 
-  const getNextScreen = () => {
-    if (selected === 'military') {
-      return 'payReconstruction1';
-    }
-
-    if (selected === 'civilian') {
-      return 'lesConfirmation';
-    }
-
-    return 'irregularIncome';
-  };
-
   const handleContinue = () => {
     const isDualMilitary = userData.partnerIncomeType === 'military' && selected === 'military';
     updateUserData({ incomeType: selected, isDualMilitary });
-    onNext(getNextScreen());
+    onNext('payInput');
   };
 
   return (
@@ -90,7 +76,7 @@ function IncomeTypeScreen({ userData, updateUserData, onNext, onBack }) {
         margin: '24px 0 0',
         lineHeight: 1.2,
       }}>
-        {isSolo ? 'How does your income work?' : 'How does your income work?'}
+        How does your income work?
       </h1>
       <p style={{
         fontFamily: 'DM Sans, sans-serif',
@@ -99,7 +85,7 @@ function IncomeTypeScreen({ userData, updateUserData, onNext, onBack }) {
         margin: '8px 0 24px',
         lineHeight: 1.5,
       }}>
-        {isSolo ? "We'll use this to build the right income setup." : "We'll use this to build the right income setup."}
+        We need this before we enter the pay that hits your bank.
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

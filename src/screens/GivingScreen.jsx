@@ -14,7 +14,7 @@ export default function GivingScreen({ userData, updateUserData, onNext, onBack 
 
   const handleContinue = (value) => {
     updateUserData({ giving: value });
-    onNext('transition');
+    onNext('monthlyPicture');
   };
 
   return (

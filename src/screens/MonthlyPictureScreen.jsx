@@ -1,87 +1,134 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { formatCurrency } from '../utils/formatters';
-import { getPriorityPlanScreen } from '../utils/flow';
 
-function Stat({ label, value, color }) {
-  return (
-    <div style={{ textAlign: 'center', padding: '20px 0' }}>
-      <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: 600, color: 'var(--gray)', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{label}</p>
-      <p style={{ fontFamily: 'Playfair Display, serif', fontSize: 40, fontWeight: 700, color: color || 'var(--navy)', margin: '0 0 4px', lineHeight: 1 }}>{formatCurrency(Math.abs(value))}</p>
-      <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: 'var(--gray)', margin: 0 }}>per month</p>
-    </div>
-  );
+function calcTotals(userData) {
+  const fields = [
+    'housing',
+    'utilities',
+    'groceries',
+    'householdEssentials',
+    'diningOut',
+    'carPayment',
+    'gasAndFuel',
+    'carInsurance',
+    'phone',
+    'internet',
+    'homeMaintenance',
+    'healthInsurance',
+    'outOfPocketMedical',
+    'childcare',
+    'kidExpenses',
+    'clothing',
+    'personalCare',
+    'entertainment',
+    'pets',
+    'travel',
+    'gifts',
+    'giving',
+  ];
+
+  const fixedTotal = fields.reduce((sum, fieldName) => sum + (userData[fieldName] || 0), 0);
+  const subscriptionTotal = (userData.subscriptions || []).reduce((sum, item) => sum + (item.price || 0), 0);
+  const debtMinimums = (userData.debts || []).reduce((sum, debt) => sum + (debt.minimum || 0), 0);
+  const totalExpenses = Math.round(fixedTotal + subscriptionTotal + debtMinimums);
+  const breathingRoom = Math.round((userData.monthlyTakeHome || 0) - totalExpenses);
+
+  return { totalExpenses, breathingRoom };
 }
 
-export default function MonthlyPictureScreen({ userData, onNext, onBack }) {
+export default function MonthlyPictureScreen({ userData, updateUserData, onNext, onBack }) {
   const [mounted, setMounted] = useState(false);
-
-  useEffect(() => { const t = setTimeout(() => setMounted(true), 50); return () => clearTimeout(t); }, []);
-
+  const { totalExpenses, breathingRoom } = useMemo(() => calcTotals(userData), [userData]);
   const income = userData.monthlyTakeHome || 0;
-  const expenses = userData.totalMonthlyExpenses || 0;
-  const breathing = userData.breathingRoom || 0;
-  const breathingPct = income > 0 ? breathing / income : 0;
+  const expensePct = income > 0 ? Math.min(100, Math.round((totalExpenses / income) * 100)) : 0;
+  const breathingPct = income > 0 ? Math.max(0, Math.round((Math.max(breathingRoom, 0) / income) * 100)) : 0;
 
-  const fixedCosts = (userData.housing || 0) + (userData.carPayment || 0) + (userData.gasAndFuel || 0) + (userData.carInsurance || 0) + (userData.debts || []).reduce((s, d) => s + d.minimum, 0);
-  const fixedPct = income > 0 ? fixedCosts / income : 0;
-  const showWholePictureFlag = fixedPct > 0.60;
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), 50);
+    return () => clearTimeout(t);
+  }, []);
 
-  let framingCopy;
-  if (breathing < 0) {
-    framingCopy = "Right now more is going out than coming in. Let's figure out why and find some breathing room.";
-  } else if (breathingPct < 0.05) {
-    framingCopy = "You've got a little room to work with. Let's put it in the right order.";
-  } else {
-    framingCopy = "You've got real breathing room. Here's how to make sure it's working as hard as possible.";
-  }
+  useEffect(() => {
+    if (userData.totalMonthlyExpenses !== totalExpenses || userData.breathingRoom !== breathingRoom) {
+      updateUserData({ totalMonthlyExpenses: totalExpenses, breathingRoom });
+    }
+  }, [breathingRoom, totalExpenses, updateUserData, userData.breathingRoom, userData.totalMonthlyExpenses]);
 
   return (
     <div style={{
-      minHeight: '100dvh', padding: '4px 24px 100px', background: '#F8F9FA',
-      opacity: mounted ? 1 : 0, transform: mounted ? 'translateY(0)' : 'translateY(8px)',
+      minHeight: '100dvh',
+      padding: '4px 24px 100px',
+      background: '#F8F9FA',
+      opacity: mounted ? 1 : 0,
+      transform: mounted ? 'translateY(0)' : 'translateY(8px)',
       transition: 'opacity 300ms ease, transform 300ms ease',
     }}>
       <button onClick={onBack} aria-label="Back" style={{ marginTop: 16, width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--navy)' }}>
-        <svg width="10" height="18" viewBox="0 0 10 18" fill="none"><path d="M9 1L1 9L9 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        <svg width="10" height="18" viewBox="0 0 10 18" fill="none"><path d="M9 1L1 9L9 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>
 
-      <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 32, fontWeight: 700, color: 'var(--navy)', margin: '24px 0 0' }}>
-        Your monthly picture
+      <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 32, fontWeight: 700, color: 'var(--navy)', margin: '24px 0 8px', lineHeight: 1.2 }}>
+        Monthly picture
       </h1>
-
-      <div style={{ background: '#fff', borderRadius: 20, padding: '4px 0', margin: '24px 0 0', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-        <Stat label="Money coming in" value={income} />
-        <div style={{ height: 1, background: '#F0F0F0', margin: '0 20px' }} />
-        <Stat label="Money going out" value={expenses} />
-        <div style={{ height: 1, background: '#F0F0F0', margin: '0 20px' }} />
-        <Stat
-          label="Breathing room"
-          value={breathing}
-          color={breathing < 0 ? 'var(--red)' : 'var(--green)'}
-        />
-      </div>
-
-      {breathing < 0 && (
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 15, fontWeight: 600, color: 'var(--red)', textAlign: 'center', margin: '8px 0 0' }}>
-          You're spending {formatCurrency(Math.abs(breathing))} more than you're bringing in.
-        </p>
-      )}
-
-      <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 16, color: 'var(--gray)', margin: '20px 0 0', lineHeight: 1.6 }}>
-        {framingCopy}
+      <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 16, color: 'var(--gray)', margin: '0 0 24px', lineHeight: 1.5 }}>
+        This is what is coming in, what is going out, and what is left.
       </p>
 
-      {showWholePictureFlag && (
-        <div style={{ background: 'var(--light-gold)', borderRadius: 12, padding: 16, marginTop: 20, borderLeft: '3px solid var(--gold)' }}>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: 'var(--gray)', margin: 0, lineHeight: 1.5 }}>
-            Your fixed costs — housing, car, and debt minimums — are taking up {Math.round(fixedPct * 100)}% of your income. That's worth understanding. We'll address it in your plan.
-          </p>
+      <div style={{ background: '#fff', borderRadius: 20, padding: 20, marginBottom: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 20 }}>
+          {[
+            { label: 'Coming in', value: income, color: 'var(--navy)' },
+            { label: 'Going out', value: totalExpenses, color: 'var(--navy)' },
+            { label: 'Left over', value: breathingRoom, color: breathingRoom >= 0 ? 'var(--green)' : 'var(--red)' },
+          ].map((stat) => (
+            <div key={stat.label} style={{ textAlign: 'center' }}>
+              <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--gray)', margin: '0 0 6px' }}>
+                {stat.label}
+              </p>
+              <p style={{ fontFamily: 'Playfair Display, serif', fontSize: 24, fontWeight: 700, color: stat.color, margin: 0, lineHeight: 1 }}>
+                {formatCurrency(Math.abs(stat.value))}
+              </p>
+            </div>
+          ))}
         </div>
-      )}
+
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: 'var(--gray)' }}>Expenses</span>
+            <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: 600, color: 'var(--navy)' }}>{expensePct}% of income</span>
+          </div>
+          <div style={{ height: 14, borderRadius: 999, background: '#E7EDF3', overflow: 'hidden' }}>
+            <div style={{ width: `${expensePct}%`, height: '100%', background: 'var(--navy)' }} />
+          </div>
+        </div>
+
+        {breathingRoom > 0 && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: 'var(--gray)' }}>Breathing room</span>
+              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: 600, color: 'var(--green)' }}>{breathingPct}% of income</span>
+            </div>
+            <div style={{ height: 14, borderRadius: 999, background: '#E8F5E9', overflow: 'hidden' }}>
+              <div style={{ width: `${breathingPct}%`, height: '100%', background: 'var(--green)' }} />
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div style={{ background: breathingRoom >= 0 ? 'var(--light-blue)' : 'var(--light-gold)', borderRadius: 16, padding: 16 }}>
+        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: 'var(--gray)', margin: 0, lineHeight: 1.5 }}>
+          {breathingRoom >= 0
+            ? `You have ${formatCurrency(breathingRoom)} left after expenses each month.`
+            : `You are short ${formatCurrency(Math.abs(breathingRoom))} each month before savings.`}
+        </p>
+      </div>
 
       <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 430, height: 80, background: 'linear-gradient(transparent, #F8F9FA 40%)', pointerEvents: 'none', zIndex: 99 }} />
-      <button onClick={() => onNext(getPriorityPlanScreen(userData))} style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', width: 'calc(100% - 48px)', maxWidth: 382, height: 56, background: 'var(--navy)', color: '#fff', border: 'none', borderRadius: 16, fontFamily: 'DM Sans, sans-serif', fontSize: 18, fontWeight: 600, cursor: 'pointer', zIndex: 100 }}>
-        Let's build your plan
+      <button
+        onClick={() => onNext('emergencyFundTarget')}
+        style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', width: 'calc(100% - 48px)', maxWidth: 382, height: 56, background: 'var(--navy)', color: '#fff', border: 'none', borderRadius: 16, fontFamily: 'DM Sans, sans-serif', fontSize: 18, fontWeight: 600, cursor: 'pointer', zIndex: 100 }}
+      >
+        Continue
       </button>
     </div>
   );

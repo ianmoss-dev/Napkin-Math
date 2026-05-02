@@ -2,18 +2,31 @@ import { useEffect, useState } from 'react';
 import { formatCurrency } from '../utils/formatters';
 
 const DEBT_TYPES = ['Credit card', 'Student loan', 'Car loan', 'Personal loan', 'Medical debt', 'Other'];
+const DEFAULT_RATES = {
+  'Credit card': 20,
+  'Student loan': 6,
+  'Car loan': 7,
+  'Personal loan': 12,
+  'Medical debt': 0,
+  Other: 10,
+};
 
 function DebtCard({ debt, onDelete }) {
+  const monthlyInterest = Math.round((debt.balance * debt.rate) / 100 / 12);
+
   return (
     <div style={{ background: '#fff', borderRadius: 16, padding: 16, marginBottom: 12, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
       <div>
         <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: 600, color: 'var(--blue)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{debt.type}</p>
         <p style={{ fontFamily: 'Playfair Display, serif', fontSize: 22, fontWeight: 700, color: 'var(--navy)', margin: '0 0 2px' }}>{formatCurrency(debt.balance)}</p>
         <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: 'var(--gray)', margin: 0 }}>
-          {debt.rateUnknown ? '24.99% (estimated)' : `${debt.rate}% APR`} · {formatCurrency(debt.minimum)}/mo minimum
+          {debt.rateUnknown ? `${debt.rate}% (estimated)` : `${debt.rate}% APR`} - {formatCurrency(debt.minimum)}/mo minimum
+        </p>
+        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: 'var(--gray)', margin: '4px 0 0' }}>
+          About {formatCurrency(monthlyInterest)}/mo in interest.
         </p>
       </div>
-      <button onClick={onDelete} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gray)', padding: 4, fontSize: 18, lineHeight: 1 }}>×</button>
+      <button onClick={onDelete} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gray)', padding: 4, fontSize: 18, lineHeight: 1 }}>x</button>
     </div>
   );
 }
@@ -27,17 +40,16 @@ function AddDebtForm({ onAdd, onCancel }) {
   const [minUnknown, setMinUnknown] = useState(false);
 
   const estimatedMin = balance ? Math.max(25, Math.round(parseFloat(balance) * 0.02)) : null;
-
   const canAdd = type && balance && (rate || rateUnknown) && (minimum || minUnknown);
 
   const handleAdd = () => {
     if (!canAdd) return;
-    const bal = parseFloat(balance);
+    const balanceValue = parseFloat(balance);
     onAdd({
       id: Date.now(),
       type,
-      balance: bal,
-      rate: rateUnknown ? 24.99 : parseFloat(rate),
+      balance: balanceValue,
+      rate: rateUnknown ? (DEFAULT_RATES[type] ?? 10) : parseFloat(rate),
       rateUnknown,
       minimum: minUnknown ? estimatedMin : parseFloat(minimum),
       minUnknown,
@@ -48,38 +60,54 @@ function AddDebtForm({ onAdd, onCancel }) {
     <div style={{ background: '#fff', borderRadius: 16, padding: 20, marginBottom: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
       <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: 600, color: 'var(--gray)', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Debt type</p>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
-        {DEBT_TYPES.map(t => (
-          <button key={t} onClick={() => setType(t)} style={{
-            padding: '8px 14px', borderRadius: 20, border: `1.5px solid ${type === t ? 'var(--navy)' : '#D0D0D0'}`,
-            background: type === t ? 'var(--navy)' : '#fff', color: type === t ? '#fff' : 'var(--navy)',
-            fontFamily: 'DM Sans, sans-serif', fontSize: 14, cursor: 'pointer', transition: 'all 150ms',
-          }}>{t}</button>
+        {DEBT_TYPES.map((item) => (
+          <button
+            key={item}
+            onClick={() => setType(item)}
+            style={{
+              padding: '8px 14px',
+              borderRadius: 20,
+              border: `1.5px solid ${type === item ? 'var(--navy)' : '#D0D0D0'}`,
+              background: type === item ? 'var(--navy)' : '#fff',
+              color: type === item ? '#fff' : 'var(--navy)',
+              fontFamily: 'DM Sans, sans-serif',
+              fontSize: 14,
+              cursor: 'pointer',
+            }}
+          >
+            {item}
+          </button>
         ))}
       </div>
 
       <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: 600, color: 'var(--gray)', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Balance</p>
       <input
-        type="number" inputMode="decimal" placeholder="$0"
-        value={balance} onChange={e => setBalance(e.target.value)}
-        style={{ width: '100%', height: 56, border: '2px solid #E0E0E0', borderRadius: 12, fontFamily: 'DM Sans, sans-serif', fontSize: 18, padding: '0 16px', outline: 'none', boxSizing: 'border-box', marginBottom: 16 }}
+        type="number"
+        inputMode="decimal"
+        value={balance}
+        onChange={(event) => setBalance(event.target.value)}
+        style={{ width: '100%', height: 56, border: '2px solid #E0E0E0', borderRadius: 12, fontFamily: 'DM Sans, sans-serif', fontSize: 18, padding: '0 16px', boxSizing: 'border-box', marginBottom: 16 }}
       />
 
       <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: 600, color: 'var(--gray)', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Interest rate</p>
       {!rateUnknown ? (
         <>
           <input
-            type="number" inputMode="decimal" placeholder="% APR"
-            value={rate} onChange={e => setRate(e.target.value)}
-            style={{ width: '100%', height: 56, border: '2px solid #E0E0E0', borderRadius: 12, fontFamily: 'DM Sans, sans-serif', fontSize: 18, padding: '0 16px', outline: 'none', boxSizing: 'border-box', marginBottom: 8 }}
+            type="number"
+            inputMode="decimal"
+            value={rate}
+            onChange={(event) => setRate(event.target.value)}
+            placeholder="% APR"
+            style={{ width: '100%', height: 56, border: '2px solid #E0E0E0', borderRadius: 12, fontFamily: 'DM Sans, sans-serif', fontSize: 18, padding: '0 16px', boxSizing: 'border-box', marginBottom: 8 }}
           />
           <button onClick={() => { setRateUnknown(true); setRate(''); }} style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: 'var(--blue)', background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 16px', textDecoration: 'underline' }}>
-            I don't know my rate
+            I do not know my rate
           </button>
         </>
       ) : (
         <div style={{ background: 'var(--light-gold)', borderRadius: 12, padding: 12, marginBottom: 16 }}>
           <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: 'var(--gray)', margin: 0, lineHeight: 1.5 }}>
-            We assumed the worst — 24.99% — so your plan is built on solid ground, not wishful thinking.{' '}
+            Using an estimate of {DEFAULT_RATES[type] ?? 10}% for this debt type.{' '}
             <button onClick={() => setRateUnknown(false)} style={{ color: 'var(--blue)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 14, textDecoration: 'underline' }}>Enter it instead</button>
           </p>
         </div>
@@ -89,12 +117,15 @@ function AddDebtForm({ onAdd, onCancel }) {
       {!minUnknown ? (
         <>
           <input
-            type="number" inputMode="decimal" placeholder="$0/mo"
-            value={minimum} onChange={e => setMinimum(e.target.value)}
-            style={{ width: '100%', height: 56, border: '2px solid #E0E0E0', borderRadius: 12, fontFamily: 'DM Sans, sans-serif', fontSize: 18, padding: '0 16px', outline: 'none', boxSizing: 'border-box', marginBottom: 8 }}
+            type="number"
+            inputMode="decimal"
+            value={minimum}
+            onChange={(event) => setMinimum(event.target.value)}
+            placeholder="$0/mo"
+            style={{ width: '100%', height: 56, border: '2px solid #E0E0E0', borderRadius: 12, fontFamily: 'DM Sans, sans-serif', fontSize: 18, padding: '0 16px', boxSizing: 'border-box', marginBottom: 8 }}
           />
           <button onClick={() => setMinUnknown(true)} style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: 'var(--blue)', background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 16px', textDecoration: 'underline' }}>
-            I'm not sure
+            I am not sure
           </button>
         </>
       ) : (
@@ -120,17 +151,19 @@ export default function DebtScreen({ userData, updateUserData, onNext, onBack })
   const [adding, setAdding] = useState(false);
   const [noDebt, setNoDebt] = useState(userData.debts?.length === 0 && userData.debts !== null ? false : null);
 
-  useEffect(() => { const t = setTimeout(() => setMounted(true), 50); return () => clearTimeout(t); }, []);
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), 50);
+    return () => clearTimeout(t);
+  }, []);
 
   const addDebt = (debt) => {
-    const updated = [...debts, debt];
-    setDebts(updated);
+    setDebts((prev) => [...prev, debt]);
     setAdding(false);
     setNoDebt(false);
   };
 
   const removeDebt = (id) => {
-    setDebts(prev => prev.filter(d => d.id !== id));
+    setDebts((prev) => prev.filter((debt) => debt.id !== id));
   };
 
   const handleContinue = () => {
@@ -142,22 +175,25 @@ export default function DebtScreen({ userData, updateUserData, onNext, onBack })
 
   return (
     <div style={{
-      minHeight: '100dvh', padding: '4px 24px 100px', background: '#F8F9FA',
-      opacity: mounted ? 1 : 0, transform: mounted ? 'translateY(0)' : 'translateY(8px)',
+      minHeight: '100dvh',
+      padding: '4px 24px 100px',
+      background: '#F8F9FA',
+      opacity: mounted ? 1 : 0,
+      transform: mounted ? 'translateY(0)' : 'translateY(8px)',
       transition: 'opacity 300ms ease, transform 300ms ease',
     }}>
       <button onClick={onBack} aria-label="Back" style={{ marginTop: 16, width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--navy)' }}>
-        <svg width="10" height="18" viewBox="0 0 10 18" fill="none"><path d="M9 1L1 9L9 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        <svg width="10" height="18" viewBox="0 0 10 18" fill="none"><path d="M9 1L1 9L9 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>
 
       <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 32, fontWeight: 700, color: 'var(--navy)', margin: '24px 0 0' }}>
         Debt
       </h1>
       <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 16, color: 'var(--gray)', margin: '8px 0 24px', lineHeight: 1.5 }}>
-        Enter each debt separately — this helps us build the right payoff plan.
+        Enter each debt separately so the plan uses real balances and rates.
       </p>
 
-      {debts.map(debt => (
+      {debts.map((debt) => (
         <DebtCard key={debt.id} debt={debt} onDelete={() => removeDebt(debt.id)} />
       ))}
 
@@ -167,13 +203,20 @@ export default function DebtScreen({ userData, updateUserData, onNext, onBack })
             + Add a debt
           </button>
           {debts.length === 0 && (
-            <button onClick={() => { setNoDebt(true); setDebts([]); }} style={{
-              flex: 1, height: 56, borderRadius: 16,
-              border: `2px solid ${noDebt ? 'var(--navy)' : '#E0E0E0'}`,
-              background: noDebt ? 'var(--navy)' : '#fff',
-              color: noDebt ? '#fff' : 'var(--gray)',
-              fontFamily: 'DM Sans, sans-serif', fontSize: 15, cursor: 'pointer', transition: 'all 150ms',
-            }}>
+            <button
+              onClick={() => { setNoDebt(true); setDebts([]); }}
+              style={{
+                flex: 1,
+                height: 56,
+                borderRadius: 16,
+                border: `2px solid ${noDebt ? 'var(--navy)' : '#E0E0E0'}`,
+                background: noDebt ? 'var(--navy)' : '#fff',
+                color: noDebt ? '#fff' : 'var(--gray)',
+                fontFamily: 'DM Sans, sans-serif',
+                fontSize: 15,
+                cursor: 'pointer',
+              }}
+            >
               No debt
             </button>
           )}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { decodeSaveCode } from '../utils/saveCode';
 
-function WelcomeScreen({ onNext, onStartFresh, onRestoreCode }) {
+function WelcomeScreen({ onStartFresh, onRestoreCode, onResumeSaved }) {
   const [visible, setVisible] = useState(false);
   const [showCodeEntry, setShowCodeEntry] = useState(false);
   const [codeInput, setCodeInput] = useState('');
@@ -73,7 +73,7 @@ function WelcomeScreen({ onNext, onStartFresh, onRestoreCode }) {
           margin: '0 0 12px',
           ...fade(250),
         }}>
-          An 80% financial solution in 30 minutes.
+          Checklist first. Then income. Then the budget.
         </p>
         <p style={{
           fontFamily: 'DM Sans, sans-serif',
@@ -136,7 +136,7 @@ function WelcomeScreen({ onNext, onStartFresh, onRestoreCode }) {
         ) : hasSaved ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <button
-              onClick={() => onNext('household')}
+              onClick={onResumeSaved}
               style={{ width: '100%', height: 56, background: '#fff', color: 'var(--navy)', border: 'none', borderRadius: 16, fontFamily: 'DM Sans, sans-serif', fontSize: 18, fontWeight: 600, cursor: 'pointer' }}
             >
               Resume where I left off
